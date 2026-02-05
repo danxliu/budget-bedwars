@@ -55,7 +55,14 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         }
 
         PlayerData playerData = teamManager.getPlayerData(player);
+        PlayerData.Team previousTeam = playerData.getTeam();
         playerData.setTeam(team);
+
+        // Clear inventory and kit if switching teams
+        if (previousTeam != null && previousTeam != team) {
+            player.getInventory().clear();
+            playerData.clearKit();
+        }
 
         if (team == PlayerData.Team.ATTACKERS) {
             player.sendMessage(Component.text("You have joined the ", NamedTextColor.GREEN)

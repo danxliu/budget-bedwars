@@ -19,3 +19,12 @@ commands:
   game:
     description: Manage the CTF game
     usage: /game <init|start|stop>
+  giveitem:
+    description: Give custom CTF items
+    usage: /giveitem <fireball|tnt|alarm> [amount]
+    permission: ctf.giveitem
+
+permissions:
+  ctf.giveitem:
+    description: Allows giving custom CTF items
+    default: op

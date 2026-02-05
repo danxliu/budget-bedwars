@@ -1,5 +1,6 @@
 package io.ocf;
 
+import io.ocf.items.AlarmItem;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
@@ -452,6 +453,9 @@ public class GameManager {
         respawnTasks.clear();
         frozenPlayers.clear();
         pendingPlayers.clear();
+
+        // Deactivate any active alarm
+        AlarmItem.deactivateAlarm();
 
         // Teleport all players back to lobby
         if (lobbyWorld != null) {
