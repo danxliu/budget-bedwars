@@ -13,11 +13,23 @@ public class TeamManager {
     }
 
     public PlayerData getPlayerData(Player player) {
-        return players.computeIfAbsent(player.getUniqueId(), id -> new PlayerData(player));
+        // Always update the player reference to ensure we have the current one
+        PlayerData data = players.get(player.getUniqueId());
+        if (data == null) {
+            data = new PlayerData(player);
+            players.put(player.getUniqueId(), data);
+        } else {
+            data.updatePlayer(player);
+        }
+        return data;
     }
 
     public void removePlayer(UUID playerId) {
         players.remove(playerId);
+    }
+
+    public void clearAllPlayers() {
+        players.clear();
     }
 
     public Set<PlayerData> getTeamMembers(PlayerData.Team team) {

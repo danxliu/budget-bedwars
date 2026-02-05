@@ -75,6 +75,7 @@ public class KitManager {
         if (kitsSection == null) return;
 
         for (String kitName : kitsSection.getKeys(false)) {
+            plugin.getLogger().info("Kit " + kitName + " found");
             ConfigurationSection kitSection = kitsSection.getConfigurationSection(kitName);
             if (kitSection == null) continue;
 
@@ -130,9 +131,10 @@ public class KitManager {
             }
 
             kits.put(kitName.toLowerCase(), new Kit(kitName, team, armor, items));
+            plugin.getLogger().info("Loaded kit: " + kitName + " (team: " + team + ")");
         }
 
-        plugin.getLogger().info("Loaded " + kits.size() + " kits");
+        plugin.getLogger().info("Loaded " + kits.size() + " kits total");
     }
 
     public boolean applyKit(Player player, String kitName, PlayerData playerData) {
@@ -177,10 +179,16 @@ public class KitManager {
         return kits.keySet();
     }
 
-    public Set<String> getKitNamesForTeam(PlayerData.Team team) {
+    public Set<String> getKitNamesForTeam(PlayerData.Team playerTeam) {
         Set<String> names = new HashSet<>();
         for (Map.Entry<String, Kit> entry : kits.entrySet()) {
-            if (entry.getValue().getTeam() == null || entry.getValue().getTeam() == team) {
+            Kit kit = entry.getValue();
+            PlayerData.Team kitTeam = kit.getTeam();
+            
+            // Only show kits that:
+            // 1. Have no team restriction (kitTeam == null), OR
+            // 2. Match the player's team exactly
+            if (kitTeam == null || kitTeam == playerTeam) {
                 names.add(entry.getKey());
             }
         }

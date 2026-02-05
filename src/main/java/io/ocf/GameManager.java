@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.*;
 
@@ -18,6 +19,7 @@ public class GameManager {
     private final KitManager kitManager;
     private GameState state = GameState.IDLE;
     private World gameWorld;
+    private World lobbyWorld;
     private int borderSize;
     private Location flagLocation;
     private Location attackerSpawnCenter;
@@ -42,30 +44,81 @@ public class GameManager {
         return state;
     }
 
-    public boolean init(World world, int borderSize) {
+    public boolean init(int borderSize) {
         if (state != GameState.IDLE) {
             return false;
         }
 
-        this.gameWorld = world;
         this.borderSize = borderSize;
-        this.state = GameState.INIT;
+        
+        // Store the lobby world (first/main world)
+        this.lobbyWorld = Bukkit.getWorlds().get(0);
+        
+        // Get config values
+        String worldName = plugin.getConfig().getString("game.world_name", "ctf_arena");
+        String worldTypeStr = plugin.getConfig().getString("game.world_type", "NORMAL");
+        String seedStr = plugin.getConfig().getString("game.world_seed", "");
+        
+        // Delete existing game world if present
+        World existingWorld = Bukkit.getWorld(worldName);
+        if (existingWorld != null) {
+            // Teleport any players in that world to lobby first
+            for (Player player : existingWorld.getPlayers()) {
+                player.teleport(lobbyWorld.getSpawnLocation());
+            }
+            Bukkit.unloadWorld(existingWorld, false);
+            deleteWorldFolder(new File(Bukkit.getWorldContainer(), worldName));
+        }
+        
+        // Create new world
+        WorldCreator creator = new WorldCreator(worldName);
+        
+        // Set world type
+        try {
+            WorldType worldType = WorldType.valueOf(worldTypeStr.toUpperCase());
+            creator.type(worldType);
+        } catch (IllegalArgumentException e) {
+            creator.type(WorldType.NORMAL);
+        }
+        
+        // Set seed if provided
+        if (!seedStr.isEmpty()) {
+            try {
+                creator.seed(Long.parseLong(seedStr));
+            } catch (NumberFormatException e) {
+                creator.seed(seedStr.hashCode());
+            }
+        } else {
+            creator.seed(new Random().nextLong());
+        }
+        
+        // Create the world
+        Bukkit.broadcast(Component.text("Generating game world...", NamedTextColor.YELLOW));
+        this.gameWorld = creator.createWorld();
+        
+        if (gameWorld == null) {
+            plugin.getLogger().severe("Failed to create game world!");
+            return false;
+        }
 
         // Set world border
-        WorldBorder border = world.getWorldBorder();
-        border.setCenter(world.getSpawnLocation());
+        WorldBorder border = gameWorld.getWorldBorder();
+        border.setCenter(0, 0);
         border.setSize(borderSize);
 
-        // Freeze world - stop daylight cycle, set to peaceful
-        world.setGameRule(GameRules.ADVANCE_TIME, false);
-        world.setGameRule(GameRules.ADVANCE_WEATHER, false);
-        world.setDifficulty(Difficulty.PEACEFUL);
-
-        // Reset all players
+        gameWorld.setGameRule(GameRules.ADVANCE_TIME, false);
+        gameWorld.setGameRule(GameRules.ADVANCE_WEATHER, false);
+        gameWorld.setDifficulty(Difficulty.PEACEFUL);
+        gameWorld.setTime(6000); // Set to noon
+        
+        // Teleport all players to game world and reset them
+        Location spawnLoc = new Location(gameWorld, 0.5, gameWorld.getHighestBlockYAt(0, 0) + 1, 0.5);
         for (Player player : Bukkit.getOnlinePlayers()) {
+            player.teleport(spawnLoc);
             resetPlayer(player);
         }
 
+        this.state = GameState.INIT;
         return true;
     }
 
@@ -400,19 +453,51 @@ public class GameManager {
         frozenPlayers.clear();
         pendingPlayers.clear();
 
-        // Remove flag block if it exists
-        if (flagLocation != null && flagLocation.getBlock().getType() == Material.ANCIENT_DEBRIS) {
-            flagLocation.getBlock().setType(Material.AIR);
+        // Teleport all players back to lobby
+        if (lobbyWorld != null) {
+            Location lobbySpawn = lobbyWorld.getSpawnLocation();
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                player.teleport(lobbySpawn);
+                player.setGameMode(GameMode.ADVENTURE);
+            }
+        }
+
+        // Unload and delete game world
+        if (gameWorld != null) {
+            String worldName = gameWorld.getName();
+            Bukkit.unloadWorld(gameWorld, false);
+            deleteWorldFolder(new File(Bukkit.getWorldContainer(), worldName));
+            gameWorld = null;
         }
 
         flagLocation = null;
         attackerSpawnCenter = null;
         state = GameState.IDLE;
 
-        Bukkit.broadcast(Component.text("Game stopped!", NamedTextColor.YELLOW));
+        Bukkit.broadcast(Component.text("Game stopped! Returned to lobby.", NamedTextColor.YELLOW));
+    }
+
+    private void deleteWorldFolder(File folder) {
+        if (folder.exists()) {
+            File[] files = folder.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteWorldFolder(file);
+                    } else {
+                        file.delete();
+                    }
+                }
+            }
+            folder.delete();
+        }
     }
 
     public World getGameWorld() {
         return gameWorld;
+    }
+
+    public World getLobbyWorld() {
+        return lobbyWorld;
     }
 }

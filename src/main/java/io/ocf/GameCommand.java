@@ -3,7 +3,6 @@ package io.ocf;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -61,20 +60,12 @@ public class GameCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        // Get world - use sender's world if player, otherwise use default world
-        World world;
-        if (sender instanceof Player player) {
-            world = player.getWorld();
-        } else {
-            world = Bukkit.getWorlds().get(0);
-        }
-
         if (gameManager.getState() != GameManager.GameState.IDLE) {
             sender.sendMessage(Component.text("A game is already in progress! Use /game stop first.", NamedTextColor.RED));
             return;
         }
 
-        if (gameManager.init(world, borderSize)) {
+        if (gameManager.init(borderSize)) {
             Bukkit.broadcast(Component.text("Game initialized! ", NamedTextColor.GREEN)
                     .append(Component.text("World border set to " + borderSize + " blocks.", NamedTextColor.YELLOW)));
             Bukkit.broadcast(Component.text("Use /team to join a team and /kit to select a kit.", NamedTextColor.AQUA));

@@ -1,6 +1,9 @@
 # CTF Plugin Configuration
 
 game:
+  world_name: "ctf_arena"
+  world_type: NORMAL
+  world_seed: ""
   attacker_spawn_radius: 50
   defender_spawn_radius: 20
   respawn_cooldown_seconds: 10
@@ -8,7 +11,7 @@ game:
   countdown_seconds: 5
 
 kits:
-  attacker:
+  axe:
     team: ATTACKERS
     armor:
       helmet: LEATHER_HELMET
@@ -16,14 +19,44 @@ kits:
       leggings: LEATHER_LEGGINGS
       boots: LEATHER_BOOTS
     items:
-      - material: STONE_SWORD
-        amount: 1
-      - material: STONE_AXE
+      - material: IRON_AXE
         amount: 1
       - material: STONE_PICKAXE
         amount: 1
       - material: STONE_SHOVEL
         amount: 1
+  sword:
+    team: ATTACKERS
+    armor:
+      helmet: LEATHER_HELMET
+      chestplate: LEATHER_CHESTPLATE
+      leggings: LEATHER_LEGGINGS
+      boots: LEATHER_BOOTS
+    items:
+      - material: IRON_SWORD
+        amount: 1
+      - material: SHIELD
+        amount: 1
+      - material: STONE_PICKAXE
+        amount: 1
+      - material: STONE_SHOVEL
+        amount: 1
+  crossbow:
+    team: ATTACKERS
+    armor:
+      helmet: LEATHER_HELMET
+      chestplate: LEATHER_CHESTPLATE
+      leggings: LEATHER_LEGGINGS
+      boots: LEATHER_BOOTS
+    items:
+      - material: CROSSBOW
+        amount: 1
+      - material: STONE_PICKAXE
+        amount: 1
+      - material: STONE_SHOVEL
+        amount: 1
+      - material: ARROW
+        amount: 16
 
   knight:
     team: DEFENDERS

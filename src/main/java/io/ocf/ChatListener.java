@@ -23,19 +23,22 @@ public class ChatListener implements Listener {
         PlayerData.Team team = playerData.getTeam();
         PlayerData.ChatMode chatMode = playerData.getChatMode();
 
-        // Build the team prefix
+        // Build the team prefix and colored name
         Component prefix;
+        Component playerName;
         if (team == PlayerData.Team.ATTACKERS) {
             prefix = Component.text("[Attacker] ", NamedTextColor.RED);
+            playerName = Component.text(player.getName(), NamedTextColor.RED);
         } else if (team == PlayerData.Team.DEFENDERS) {
             prefix = Component.text("[Defender] ", NamedTextColor.BLUE);
+            playerName = Component.text(player.getName(), NamedTextColor.BLUE);
         } else {
             prefix = Component.empty();
+            playerName = Component.text(player.getName());
         }
 
-        Component playerName = Component.text(player.getName());
-        Component message = event.message();
-        message.color(NamedTextColor.WHITE);
+        // Message stays white
+        Component message = event.message().color(NamedTextColor.WHITE);
 
         // Cancel the default chat event
         event.setCancelled(true);

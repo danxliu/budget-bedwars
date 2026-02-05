@@ -31,6 +31,12 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        // Only allow team changes during INIT phase
+        if (!gameManager.isInInitPhase() && gameManager.getState() != GameManager.GameState.IDLE) {
+            player.sendMessage(Component.text("You cannot change teams during the game!", NamedTextColor.RED));
+            return true;
+        }
+
         if (args.length != 1) {
             player.sendMessage(Component.text("Usage: /team <attackers|defenders>", NamedTextColor.RED));
             return true;

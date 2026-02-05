@@ -14,7 +14,7 @@ public class PlayerData {
     private static NamespacedKey kitKey;
 
     private final UUID playerId;
-    private final Player player;
+    private Player player;
 
     public enum Team {
         ATTACKERS, DEFENDERS
@@ -33,6 +33,10 @@ public class PlayerData {
     public PlayerData(Player player) {
         this.player = player;
         this.playerId = player.getUniqueId();
+    }
+
+    public void updatePlayer(Player player) {
+        this.player = player;
     }
 
     public UUID getPlayerId() {
