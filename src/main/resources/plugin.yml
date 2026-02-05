@@ -1,0 +1,18 @@
+name: CTF
+version: 1.0.0
+main: io.ocf.CTF
+description: Capture the Flag Minigame
+author: PaperMC
+website: https://papermc.io
+api-version: '1.21.11'
+
+commands:
+  team:
+    description: Join a team (attackers or defenders)
+    usage: /team <attackers|defenders>
+  chat:
+    description: Set chat mode (global or team)
+    usage: /chat <global|team>
+  kit:
+    description: Select a kit
+    usage: /kit <kit_name>

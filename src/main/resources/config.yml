@@ -1,0 +1,66 @@
+# CTF Plugin Configuration
+
+kits:
+  attacker:
+    team: ATTACKERS
+    armor:
+      helmet: LEATHER_HELMET
+      chestplate: LEATHER_CHESTPLATE
+      leggings: LEATHER_LEGGINGS
+      boots: LEATHER_BOOTS
+    items:
+      - material: STONE_SWORD
+        amount: 1
+      - material: STONE_AXE
+        amount: 1
+      - material: STONE_PICKAXE
+        amount: 1
+      - material: STONE_SHOVEL
+        amount: 1
+
+  knight:
+    team: DEFENDERS
+    armor:
+      helmet: DIAMOND_HELMET
+      chestplate: DIAMOND_CHESTPLATE
+      leggings: DIAMOND_LEGGINGS
+      boots: DIAMOND_BOOTS
+    items:
+      - material: DIAMOND_SWORD
+        amount: 1
+      - material: SHIELD
+        amount: 1
+      - material: IRON_AXE
+        amount: 1
+
+  archer:
+    team: DEFENDERS
+    armor:
+      helmet: IRON_HELMET
+      chestplate: IRON_CHESTPLATE
+      leggings: IRON_LEGGINGS
+      boots: IRON_BOOTS
+    items:
+      - material: IRON_SWORD
+        amount: 1
+      - material: BOW
+        amount: 1
+        enchantments:
+          power: 1
+      - material: ARROW
+        amount: 64
+
+  builder:
+    team: DEFENDERS
+    armor:
+      helmet: CHAINMAIL_HELMET
+      chestplate: CHAINMAIL_CHESTPLATE
+      leggings: CHAINMAIL_LEGGINGS
+      boots: CHAINMAIL_BOOTS
+    items:
+      - material: IRON_SWORD
+        amount: 1
+      - material: DIAMOND_PICKAXE
+        amount: 1
+      - material: STONE_BRICKS
+        amount: 128
