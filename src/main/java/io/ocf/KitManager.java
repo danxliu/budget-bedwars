@@ -164,6 +164,9 @@ public class KitManager {
             inv.addItem(item.toItemStack());
         }
 
+        // Store kit selection in player data
+        playerData.setKit(kitName.toLowerCase());
+
         player.sendMessage(Component.text("Kit '", NamedTextColor.GREEN)
                 .append(Component.text(kit.getName(), NamedTextColor.GOLD))
                 .append(Component.text("' applied!", NamedTextColor.GREEN)));

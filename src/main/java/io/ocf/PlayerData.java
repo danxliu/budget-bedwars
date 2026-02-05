@@ -11,6 +11,7 @@ import java.util.UUID;
 public class PlayerData {
     private static NamespacedKey teamKey;
     private static NamespacedKey chatModeKey;
+    private static NamespacedKey kitKey;
 
     private final UUID playerId;
     private final Player player;
@@ -26,6 +27,7 @@ public class PlayerData {
     public static void init(JavaPlugin plugin) {
         teamKey = new NamespacedKey(plugin, "team");
         chatModeKey = new NamespacedKey(plugin, "chat_mode");
+        kitKey = new NamespacedKey(plugin, "kit");
     }
 
     public PlayerData(Player player) {
@@ -75,5 +77,33 @@ public class PlayerData {
             }
         }
         return ChatMode.GLOBAL;
+    }
+
+    public void clearTeam() {
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        pdc.remove(teamKey);
+    }
+
+    public void setKit(String kitName) {
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        pdc.set(kitKey, PersistentDataType.STRING, kitName);
+    }
+
+    public String getKit() {
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        return pdc.get(kitKey, PersistentDataType.STRING);
+    }
+
+    public boolean hasKit() {
+        return getKit() != null;
+    }
+
+    public void clearKit() {
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        pdc.remove(kitKey);
+    }
+
+    public boolean isReady() {
+        return getTeam() != null && hasKit();
     }
 }

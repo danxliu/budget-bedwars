@@ -16,10 +16,12 @@ import java.util.stream.Collectors;
 public class KitCommand implements CommandExecutor, TabCompleter {
     private final TeamManager teamManager;
     private final KitManager kitManager;
+    private final GameManager gameManager;
 
-    public KitCommand(TeamManager teamManager, KitManager kitManager) {
+    public KitCommand(TeamManager teamManager, KitManager kitManager, GameManager gameManager) {
         this.teamManager = teamManager;
         this.kitManager = kitManager;
+        this.gameManager = gameManager;
     }
 
     @Override
@@ -42,7 +44,10 @@ public class KitCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        kitManager.applyKit(player, args[0], playerData);
+        if (kitManager.applyKit(player, args[0], playerData)) {
+            // Check if pending player is now ready
+            gameManager.checkPendingPlayer(player);
+        }
         return true;
     }
 

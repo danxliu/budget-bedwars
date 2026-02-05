@@ -10,20 +10,26 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class CTF extends JavaPlugin implements Listener {
     private TeamManager teamManager;
     private KitManager kitManager;
+    private GameManager gameManager;
 
     @Override
     public void onEnable() {
         teamManager = new TeamManager(this);
         kitManager = new KitManager(this);
+        gameManager = new GameManager(this, teamManager, kitManager);
 
         // Register commands
-        getCommand("team").setExecutor(new TeamCommand(teamManager));
+        TeamCommand teamCommand = new TeamCommand(teamManager, gameManager);
+        KitCommand kitCommand = new KitCommand(teamManager, kitManager, gameManager);
+        getCommand("team").setExecutor(teamCommand);
         getCommand("chat").setExecutor(new ChatCommand(teamManager));
-        getCommand("kit").setExecutor(new KitCommand(teamManager, kitManager));
+        getCommand("kit").setExecutor(kitCommand);
+        getCommand("game").setExecutor(new GameCommand(gameManager));
 
         // Register listeners
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(new ChatListener(teamManager), this);
+        Bukkit.getPluginManager().registerEvents(new GameListener(gameManager, teamManager), this);
     }
 
     @EventHandler

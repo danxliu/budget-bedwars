@@ -1,5 +1,12 @@
 # CTF Plugin Configuration
 
+game:
+  attacker_spawn_radius: 50
+  defender_spawn_radius: 20
+  respawn_cooldown_seconds: 10
+  flag_location_max_attempts: 100
+  countdown_seconds: 5
+
 kits:
   attacker:
     team: ATTACKERS

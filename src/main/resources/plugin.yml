@@ -16,3 +16,6 @@ commands:
   kit:
     description: Select a kit
     usage: /kit <kit_name>
+  game:
+    description: Manage the CTF game
+    usage: /game <init|start|stop>

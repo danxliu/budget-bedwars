@@ -16,9 +16,11 @@ import java.util.stream.Collectors;
 
 public class TeamCommand implements CommandExecutor, TabCompleter {
     private final TeamManager teamManager;
+    private final GameManager gameManager;
 
-    public TeamCommand(TeamManager teamManager) {
+    public TeamCommand(TeamManager teamManager, GameManager gameManager) {
         this.teamManager = teamManager;
+        this.gameManager = gameManager;
     }
 
     @Override
@@ -58,6 +60,9 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                     .append(Component.text("Defenders", NamedTextColor.BLUE))
                     .append(Component.text(" team!", NamedTextColor.GREEN)));
         }
+
+        // Check if pending player is now ready
+        gameManager.checkPendingPlayer(player);
 
         return true;
     }
