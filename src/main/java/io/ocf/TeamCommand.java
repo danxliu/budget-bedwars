@@ -59,6 +59,9 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         PlayerData.Team previousTeam = playerData.getTeam();
         playerData.setTeam(team);
 
+        // Update scoreboard team for display
+        teamManager.addPlayerToScoreboardTeam(player, team);
+
         // Clear inventory and kit if switching teams
         if (previousTeam != null && previousTeam != team) {
             player.getInventory().clear();

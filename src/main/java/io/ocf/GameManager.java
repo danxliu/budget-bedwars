@@ -601,6 +601,9 @@ public class GameManager {
         // Stop zone tasks
         stopZoneTasks();
 
+        // Clear scoreboard teams
+        teamManager.clearScoreboardTeams();
+
         // Teleport all players back to lobby
         if (lobbyWorld != null) {
             Location lobbySpawn = lobbyWorld.getSpawnLocation();
