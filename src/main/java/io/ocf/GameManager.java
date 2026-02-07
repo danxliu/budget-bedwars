@@ -1,6 +1,7 @@
 package io.ocf;
 
 import io.ocf.items.AlarmItem;
+import io.ocf.items.FlagCompassItem;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
@@ -8,7 +9,10 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.time.Duration;
@@ -24,9 +28,18 @@ public class GameManager {
     private int borderSize;
     private Location flagLocation;
     private Location attackerSpawnCenter;
+    private int attackerSpawnRadius;
     private final Set<UUID> frozenPlayers = new HashSet<>();
     private final Set<UUID> pendingPlayers = new HashSet<>();
     private final Map<UUID, BukkitRunnable> respawnTasks = new HashMap<>();
+
+    // Zone effect levels (upgradeable for future defender purchases)
+    private int attackerRegenLevel = 1;
+    private final Map<PotionEffectType, Integer> defenderEffects = new HashMap<>();
+
+    // Zone tasks
+    private BukkitTask beamParticleTask;
+    private BukkitTask zoneEffectsTask;
 
     public enum GameState {
         IDLE,       // No game active
@@ -172,7 +185,10 @@ public class GameManager {
 
         // Get config values
         int defenderRadius = plugin.getConfig().getInt("game.defender_spawn_radius", 20);
-        int attackerRadius = plugin.getConfig().getInt("game.attacker_spawn_radius", 50);
+        attackerSpawnRadius = plugin.getConfig().getInt("game.attacker_spawn_radius", 50);
+
+        // Create 5x5 stone brick platform at attacker spawn center
+        createPlatform(attackerSpawnCenter);
 
         // Teleport players to their spawns
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -181,7 +197,7 @@ public class GameManager {
                 Location spawn = getRandomSpawnAround(flagLocation, defenderRadius);
                 player.teleport(spawn);
             } else if (data.getTeam() == PlayerData.Team.ATTACKERS) {
-                Location spawn = getRandomSpawnAround(attackerSpawnCenter, attackerRadius);
+                Location spawn = getSpawnOnPerimeter(attackerSpawnCenter, attackerSpawnRadius);
                 player.teleport(spawn);
                 player.setRespawnLocation(spawn, true);
             }
@@ -210,6 +226,9 @@ public class GameManager {
         int xSign = (quadrant % 2 == 0) ? 1 : -1;
         int zSign = (quadrant < 2) ? 1 : -1;
 
+        int selectedX = 0, selectedZ = 0;
+        boolean foundValid = false;
+
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             // Random location within the chosen quadrant
             int x = (int) center.getX() + xSign * (random.nextInt(halfSize / 2) + halfSize / 4);
@@ -220,20 +239,26 @@ public class GameManager {
 
             // Check if it's not water
             if (type != Material.WATER && type != Material.LAVA) {
-                return highestBlock.getLocation().add(0, 1, 0);
+                selectedX = x;
+                selectedZ = z;
+                foundValid = true;
+                break;
             }
         }
 
-        // Fallback: create dirt platform above water
-        int x = (int) center.getX() + xSign * (halfSize / 2);
-        int z = (int) center.getZ() + zSign * (halfSize / 2);
-        Block highestBlock = gameWorld.getHighestBlockAt(x, z);
+        // Fallback location if no valid spot found
+        if (!foundValid) {
+            selectedX = (int) center.getX() + xSign * (halfSize / 2);
+            selectedZ = (int) center.getZ() + zSign * (halfSize / 2);
+        }
+
+        Block highestBlock = gameWorld.getHighestBlockAt(selectedX, selectedZ);
         Location platformLoc = highestBlock.getLocation().add(0, 1, 0);
 
-        // Create 5x5 dirt platform
+        // Always create 5x5 stone brick platform
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
-                platformLoc.clone().add(dx, 0, dz).getBlock().setType(Material.DIRT);
+                platformLoc.clone().add(dx, 0, dz).getBlock().setType(Material.STONE_BRICKS);
             }
         }
 
@@ -268,6 +293,115 @@ public class GameManager {
         }
         // Fallback to center
         return center.clone().add(0.5, 1, 0.5);
+    }
+
+    private Location getSpawnOnPerimeter(Location center, int radius) {
+        Random random = new Random();
+        // Try multiple angles around the perimeter
+        double startAngle = random.nextDouble() * 2 * Math.PI;
+        for (int attempt = 0; attempt < 36; attempt++) {
+            double angle = startAngle + (attempt * Math.PI / 18); // Try every 10 degrees
+            int x = (int) (center.getX() + radius * Math.cos(angle));
+            int z = (int) (center.getZ() + radius * Math.sin(angle));
+            Block highestBlock = gameWorld.getHighestBlockAt(x, z);
+
+            if (highestBlock.getType() != Material.WATER && highestBlock.getType() != Material.LAVA) {
+                return highestBlock.getLocation().add(0.5, 1, 0.5);
+            }
+        }
+        // Fallback: create platform at first angle
+        int x = (int) (center.getX() + radius * Math.cos(startAngle));
+        int z = (int) (center.getZ() + radius * Math.sin(startAngle));
+        Block highestBlock = gameWorld.getHighestBlockAt(x, z);
+        Location platformLoc = highestBlock.getLocation().add(0, 1, 0);
+        createPlatform(platformLoc);
+        return platformLoc.add(0, 1, 0);
+    }
+
+    private void createPlatform(Location center) {
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                center.clone().add(dx, -1, dz).getBlock().setType(Material.STONE_BRICKS);
+            }
+        }
+    }
+
+    private void startZoneTasks() {
+        // Beam particle task - spawn END_ROD particles above flag
+        beamParticleTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (flagLocation == null || gameWorld == null) return;
+                
+                // Spawn particles in a column above the flag
+                for (int y = 0; y < 50; y += 2) {
+                    Location particleLoc = flagLocation.clone().add(0.5, y, 0.5);
+                    gameWorld.spawnParticle(Particle.END_ROD, particleLoc, 1, 0, 0, 0, 0);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 10L);
+
+        // Zone effects task - regen for attackers + boundary particles
+        zoneEffectsTask = new BukkitRunnable() {
+            int tickCounter = 0;
+
+            @Override
+            public void run() {
+                if (attackerSpawnCenter == null || gameWorld == null) return;
+
+                // Apply regen to attackers in zone
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    PlayerData data = teamManager.getPlayerData(player);
+                    if (data.getTeam() != PlayerData.Team.ATTACKERS) continue;
+
+                    double distance = player.getLocation().distance(attackerSpawnCenter);
+                    if (distance <= attackerSpawnRadius) {
+                        // Apply regeneration with duration slightly longer than check interval
+                        player.addPotionEffect(new PotionEffect(
+                                PotionEffectType.REGENERATION,
+                                40, // 2 seconds (longer than 20 tick interval)
+                                attackerRegenLevel - 1, // Level is 0-indexed
+                                true, // Ambient
+                                true, // Show particles
+                                true  // Show icon
+                        ));
+                    }
+                }
+
+                // Spawn boundary particles every 2 seconds (40 ticks)
+                tickCounter++;
+                if (tickCounter >= 2) {
+                    tickCounter = 0;
+                    spawnBoundaryParticles();
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L);
+    }
+
+    private void spawnBoundaryParticles() {
+        if (attackerSpawnCenter == null || gameWorld == null) return;
+
+        // Spawn particles around the perimeter, spread apart (~15 degrees = 24 points)
+        for (int i = 0; i < 24; i++) {
+            double angle = i * Math.PI / 12;
+            double x = attackerSpawnCenter.getX() + attackerSpawnRadius * Math.cos(angle);
+            double z = attackerSpawnCenter.getZ() + attackerSpawnRadius * Math.sin(angle);
+            int y = gameWorld.getHighestBlockYAt((int) x, (int) z) + 2;
+            
+            Location particleLoc = new Location(gameWorld, x, y, z);
+            gameWorld.spawnParticle(Particle.HAPPY_VILLAGER, particleLoc, 3, 0.3, 0.5, 0.3, 0);
+        }
+    }
+
+    private void stopZoneTasks() {
+        if (beamParticleTask != null) {
+            beamParticleTask.cancel();
+            beamParticleTask = null;
+        }
+        if (zoneEffectsTask != null) {
+            zoneEffectsTask.cancel();
+            zoneEffectsTask = null;
+        }
     }
 
     private void startCountdown() {
@@ -306,6 +440,12 @@ public class GameManager {
                     // Unfreeze all players
                     frozenPlayers.clear();
                     state = GameState.RUNNING;
+
+                    // Start compass update task
+                    FlagCompassItem.startUpdateTask();
+
+                    // Start zone tasks (beam particles, regen zone)
+                    startZoneTasks();
 
                     cancel();
                 }
@@ -358,8 +498,7 @@ public class GameManager {
             // Attackers respawn at their bed spawn (natural spawnpoint)
             spawn = player.getRespawnLocation();
             if (spawn == null) {
-                spawn = getRandomSpawnAround(attackerSpawnCenter, 
-                        plugin.getConfig().getInt("game.attacker_spawn_radius", 50));
+                spawn = getSpawnOnPerimeter(attackerSpawnCenter, attackerSpawnRadius);
             }
         }
 
@@ -405,13 +544,12 @@ public class GameManager {
             pendingPlayers.remove(player.getUniqueId());
 
             int defenderRadius = plugin.getConfig().getInt("game.defender_spawn_radius", 20);
-            int attackerRadius = plugin.getConfig().getInt("game.attacker_spawn_radius", 50);
 
             Location spawn;
             if (data.getTeam() == PlayerData.Team.DEFENDERS) {
                 spawn = getRandomSpawnAround(flagLocation, defenderRadius);
             } else {
-                spawn = getRandomSpawnAround(attackerSpawnCenter, attackerRadius);
+                spawn = getSpawnOnPerimeter(attackerSpawnCenter, attackerSpawnRadius);
                 player.setRespawnLocation(spawn, true);
             }
 
@@ -456,6 +594,12 @@ public class GameManager {
 
         // Deactivate any active alarm
         AlarmItem.deactivateAlarm();
+
+        // Stop compass update task
+        FlagCompassItem.stopUpdateTask();
+
+        // Stop zone tasks
+        stopZoneTasks();
 
         // Teleport all players back to lobby
         if (lobbyWorld != null) {

@@ -15,7 +15,7 @@ import java.util.List;
 
 public class GiveItemCommand implements CommandExecutor, TabCompleter {
     private final CustomItemManager customItemManager;
-    private static final List<String> ITEM_NAMES = List.of("fireball", "tnt", "alarm");
+    private static final List<String> ITEM_NAMES = List.of("fireball", "tnt", "alarm", "compass");
 
     public GiveItemCommand(CustomItemManager customItemManager) {
         this.customItemManager = customItemManager;
@@ -35,7 +35,7 @@ public class GiveItemCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length < 1) {
-            player.sendMessage("§cUsage: /giveitem <fireball|tnt|alarm> [amount]");
+            player.sendMessage("§cUsage: /giveitem <fireball|tnt|alarm|compass> [amount]");
             return true;
         }
 
@@ -59,12 +59,13 @@ public class GiveItemCommand implements CommandExecutor, TabCompleter {
             case "fireball" -> customItemManager.createFireball(amount);
             case "tnt" -> customItemManager.createInstantTNT(amount);
             case "alarm" -> customItemManager.createAlarm(amount);
+            case "compass" -> customItemManager.createFlagCompass(amount);
             default -> null;
         };
 
         if (item == null) {
             player.sendMessage("§cUnknown item: " + itemName);
-            player.sendMessage("§7Available items: fireball, tnt, alarm");
+            player.sendMessage("§7Available items: fireball, tnt, alarm, compass");
             return true;
         }
 

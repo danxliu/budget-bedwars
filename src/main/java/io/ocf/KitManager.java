@@ -1,5 +1,6 @@
 package io.ocf;
 
+import io.ocf.items.CustomItemManager;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.text.Component;
@@ -20,6 +21,7 @@ import java.util.*;
 public class KitManager {
     private final JavaPlugin plugin;
     private final Map<String, Kit> kits = new HashMap<>();
+    private CustomItemManager customItemManager;
 
     public static class Kit {
         private final String name;
@@ -42,13 +44,23 @@ public class KitManager {
 
     public static class KitItem {
         private final Material material;
+        private final String customItemId;
         private final int amount;
         private final Map<Enchantment, Integer> enchantments;
 
-        public KitItem(Material material, int amount, Map<Enchantment, Integer> enchantments) {
+        public KitItem(Material material, String customItemId, int amount, Map<Enchantment, Integer> enchantments) {
             this.material = material;
+            this.customItemId = customItemId;
             this.amount = amount;
             this.enchantments = enchantments;
+        }
+
+        public boolean isCustomItem() {
+            return customItemId != null;
+        }
+
+        public String getCustomItemId() {
+            return customItemId;
         }
 
         public ItemStack toItemStack() {
@@ -57,6 +69,10 @@ public class KitManager {
                 item.addUnsafeEnchantment(entry.getKey(), entry.getValue());
             }
             return item;
+        }
+
+        public int getAmount() {
+            return amount;
         }
     }
 
@@ -107,9 +123,17 @@ public class KitManager {
             if (itemsList != null) {
                 for (Object obj : itemsList) {
                     if (obj instanceof Map<?, ?> itemMap) {
-                        String materialStr = (String) itemMap.get("material");
                         int amount = itemMap.get("amount") instanceof Number n ? n.intValue() : 1;
                         
+                        // Check for custom_item first
+                        String customItemId = (String) itemMap.get("custom_item");
+                        if (customItemId != null) {
+                            items.add(new KitItem(null, customItemId, amount, new HashMap<>()));
+                            continue;
+                        }
+                        
+                        // Otherwise parse as regular material
+                        String materialStr = (String) itemMap.get("material");
                         Material material = Material.matchMaterial(materialStr);
                         if (material == null) continue;
 
@@ -125,7 +149,7 @@ public class KitManager {
                             }
                         }
 
-                        items.add(new KitItem(material, amount, enchantments));
+                        items.add(new KitItem(material, null, amount, enchantments));
                     }
                 }
             }
@@ -163,7 +187,19 @@ public class KitManager {
 
         // Apply items
         for (KitItem item : kit.getItems()) {
-            inv.addItem(item.toItemStack());
+            if (item.isCustomItem()) {
+                // Get custom item from CustomItemManager
+                if (customItemManager != null) {
+                    var customItem = customItemManager.getItem(item.getCustomItemId());
+                    if (customItem != null) {
+                        inv.addItem(customItem.createItemStack(item.getAmount()));
+                    } else {
+                        plugin.getLogger().warning("Custom item '" + item.getCustomItemId() + "' not found!");
+                    }
+                }
+            } else {
+                inv.addItem(item.toItemStack());
+            }
         }
 
         // Store kit selection in player data
@@ -193,5 +229,9 @@ public class KitManager {
             }
         }
         return names;
+    }
+
+    public void setCustomItemManager(CustomItemManager customItemManager) {
+        this.customItemManager = customItemManager;
     }
 }

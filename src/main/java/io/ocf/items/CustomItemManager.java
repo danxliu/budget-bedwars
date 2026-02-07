@@ -19,6 +19,7 @@ public class CustomItemManager {
     private final FireballItem fireballItem;
     private final InstantTNTItem instantTNTItem;
     private final AlarmItem alarmItem;
+    private final FlagCompassItem flagCompassItem;
 
     public CustomItemManager(JavaPlugin plugin, GameManager gameManager, TeamManager teamManager) {
         this.plugin = plugin;
@@ -28,15 +29,18 @@ public class CustomItemManager {
         // Initialize static keys
         CustomItem.init(plugin);
         AlarmItem.init(plugin, teamManager);
+        FlagCompassItem.init(plugin, gameManager, teamManager);
 
         // Create and register items
         fireballItem = new FireballItem();
         instantTNTItem = new InstantTNTItem();
         alarmItem = new AlarmItem();
+        flagCompassItem = new FlagCompassItem();
 
         registerItem(fireballItem);
         registerItem(instantTNTItem);
         registerItem(alarmItem);
+        registerItem(flagCompassItem);
 
         plugin.getLogger().info("Registered " + items.size() + " custom items");
     }
@@ -73,6 +77,10 @@ public class CustomItemManager {
         return alarmItem.createItemStack(amount);
     }
 
+    public ItemStack createFlagCompass(int amount) {
+        return flagCompassItem.createItemStack(amount);
+    }
+
     public FireballItem getFireballItem() {
         return fireballItem;
     }
@@ -83,6 +91,10 @@ public class CustomItemManager {
 
     public AlarmItem getAlarmItem() {
         return alarmItem;
+    }
+
+    public FlagCompassItem getFlagCompassItem() {
+        return flagCompassItem;
     }
 
     public GameManager getGameManager() {

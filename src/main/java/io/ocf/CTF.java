@@ -21,6 +21,7 @@ public class CTF extends JavaPlugin implements Listener {
         kitManager = new KitManager(this);
         gameManager = new GameManager(this, teamManager, kitManager);
         customItemManager = new CustomItemManager(this, gameManager, teamManager);
+        kitManager.setCustomItemManager(customItemManager);
 
         // Register commands
         TeamCommand teamCommand = new TeamCommand(teamManager, gameManager);
