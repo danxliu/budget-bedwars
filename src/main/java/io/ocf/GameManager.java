@@ -34,8 +34,8 @@ public class GameManager {
     private final Map<UUID, BukkitRunnable> respawnTasks = new HashMap<>();
 
     // Zone effect levels (upgradeable for future defender purchases)
-    private int attackerRegenLevel = 1;
-    private final Map<PotionEffectType, Integer> defenderEffects = new HashMap<>();
+    private int defenderRegenLevel = 1;
+    private int defenderSpawnRadius;
 
     // Zone tasks
     private BukkitTask beamParticleTask;
@@ -184,7 +184,7 @@ public class GameManager {
         attackerSpawnCenter = calculateOppositeQuadrant(flagLocation);
 
         // Get config values
-        int defenderRadius = plugin.getConfig().getInt("game.defender_spawn_radius", 20);
+        defenderSpawnRadius = plugin.getConfig().getInt("game.defender_spawn_radius", 20);
         attackerSpawnRadius = plugin.getConfig().getInt("game.attacker_spawn_radius", 50);
 
         // Create 5x5 stone brick platform at attacker spawn center
@@ -194,7 +194,7 @@ public class GameManager {
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerData data = teamManager.getPlayerData(player);
             if (data.getTeam() == PlayerData.Team.DEFENDERS) {
-                Location spawn = getRandomSpawnAround(flagLocation, defenderRadius);
+                Location spawn = getRandomSpawnAround(flagLocation, defenderSpawnRadius);
                 player.teleport(spawn);
             } else if (data.getTeam() == PlayerData.Team.ATTACKERS) {
                 Location spawn = getSpawnOnPerimeter(attackerSpawnCenter, attackerSpawnRadius);
@@ -343,34 +343,35 @@ public class GameManager {
             public void run() {
                 if (flagLocation == null || gameWorld == null) return;
                 
-                // Spawn particles in a column above the flag
-                for (int y = 0; y < 50; y += 2) {
+                // Spawn particles in a column above the flag (denser, more particles)
+                for (int y = 0; y < 60; y++) {
                     Location particleLoc = flagLocation.clone().add(0.5, y, 0.5);
-                    gameWorld.spawnParticle(Particle.END_ROD, particleLoc, 1, 0, 0, 0, 0);
+                    gameWorld.spawnParticle(Particle.END_ROD, particleLoc, 3, 0.1, 0.1, 0.1, 0);
                 }
             }
-        }.runTaskTimer(plugin, 0L, 10L);
+        }.runTaskTimer(plugin, 0L, 5L);
 
-        // Zone effects task - regen for attackers + boundary particles
+        // Zone effects task - regen for defenders near flag + boundary particles
         zoneEffectsTask = new BukkitRunnable() {
             int tickCounter = 0;
 
             @Override
             public void run() {
-                if (attackerSpawnCenter == null || gameWorld == null) return;
+                if (flagLocation == null || gameWorld == null) return;
 
-                // Apply regen to attackers in zone
+                // Apply regen to defenders in zone around flag
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     PlayerData data = teamManager.getPlayerData(player);
-                    if (data.getTeam() != PlayerData.Team.ATTACKERS) continue;
+                    if (data.getTeam() != PlayerData.Team.DEFENDERS) continue;
+                    if (!player.getWorld().equals(gameWorld)) continue;
 
-                    double distance = player.getLocation().distance(attackerSpawnCenter);
-                    if (distance <= attackerSpawnRadius) {
+                    double distance = player.getLocation().distance(flagLocation);
+                    if (distance <= defenderSpawnRadius) {
                         // Apply regeneration with duration slightly longer than check interval
                         player.addPotionEffect(new PotionEffect(
                                 PotionEffectType.REGENERATION,
                                 40, // 2 seconds (longer than 20 tick interval)
-                                attackerRegenLevel - 1, // Level is 0-indexed
+                                defenderRegenLevel - 1, // Level is 0-indexed
                                 true, // Ambient
                                 true, // Show particles
                                 true  // Show icon
@@ -389,17 +390,17 @@ public class GameManager {
     }
 
     private void spawnBoundaryParticles() {
-        if (attackerSpawnCenter == null || gameWorld == null) return;
+        if (flagLocation == null || gameWorld == null) return;
 
-        // Spawn particles around the perimeter, spread apart (~15 degrees = 24 points)
-        for (int i = 0; i < 24; i++) {
-            double angle = i * Math.PI / 12;
-            double x = attackerSpawnCenter.getX() + attackerSpawnRadius * Math.cos(angle);
-            double z = attackerSpawnCenter.getZ() + attackerSpawnRadius * Math.sin(angle);
+        // Spawn particles around the flag zone perimeter (48 points, more particles each)
+        for (int i = 0; i < 48; i++) {
+            double angle = i * Math.PI / 24;
+            double x = flagLocation.getX() + defenderSpawnRadius * Math.cos(angle);
+            double z = flagLocation.getZ() + defenderSpawnRadius * Math.sin(angle);
             int y = gameWorld.getHighestBlockYAt((int) x, (int) z) + 2;
             
             Location particleLoc = new Location(gameWorld, x, y, z);
-            gameWorld.spawnParticle(Particle.HAPPY_VILLAGER, particleLoc, 3, 0.3, 0.5, 0.3, 0);
+            gameWorld.spawnParticle(Particle.HAPPY_VILLAGER, particleLoc, 8, 0.3, 0.8, 0.3, 0);
         }
     }
 
@@ -499,11 +500,9 @@ public class GameManager {
     }
 
     private void respawnPlayer(Player player, PlayerData data) {
-        int defenderRadius = plugin.getConfig().getInt("game.defender_spawn_radius", 20);
-
         Location spawn;
         if (data.getTeam() == PlayerData.Team.DEFENDERS) {
-            spawn = getRandomSpawnAround(flagLocation, defenderRadius);
+            spawn = getRandomSpawnAround(flagLocation, defenderSpawnRadius);
         } else {
             // Attackers respawn at their bed spawn (natural spawnpoint)
             spawn = player.getRespawnLocation();
