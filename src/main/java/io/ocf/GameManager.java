@@ -235,10 +235,8 @@ public class GameManager {
             int z = (int) center.getZ() + zSign * (random.nextInt(halfSize / 2) + halfSize / 4);
 
             Block highestBlock = gameWorld.getHighestBlockAt(x, z);
-            Material type = highestBlock.getType();
 
-            // Check if it's not water
-            if (type != Material.WATER && type != Material.LAVA) {
+            if (isValidSpawnBlock(highestBlock.getType())) {
                 selectedX = x;
                 selectedZ = z;
                 foundValid = true;
@@ -263,6 +261,18 @@ public class GameManager {
         }
 
         return platformLoc.add(0, 1, 0);
+    }
+
+    private boolean isValidSpawnBlock(Material type) {
+        // Avoid water, lava, and tree blocks (leaves and logs)
+        if (type == Material.WATER || type == Material.LAVA) {
+            return false;
+        }
+        String name = type.name();
+        if (name.contains("LEAVES") || name.contains("LOG") || name.contains("WOOD")) {
+            return false;
+        }
+        return true;
     }
 
     private Location calculateOppositeQuadrant(Location flagLoc) {
