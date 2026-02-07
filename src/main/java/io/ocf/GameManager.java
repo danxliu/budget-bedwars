@@ -499,7 +499,7 @@ public class GameManager {
         task.runTaskTimer(plugin, 0L, 20L);
     }
 
-    private void respawnPlayer(Player player, PlayerData data) {
+private void respawnPlayer(Player player, PlayerData data) {
         Location spawn;
         if (data.getTeam() == PlayerData.Team.DEFENDERS) {
             spawn = getRandomSpawnAround(flagLocation, defenderSpawnRadius);
@@ -539,9 +539,29 @@ public class GameManager {
 
     public void handleLateJoin(Player player) {
         if (state == GameState.RUNNING || state == GameState.COUNTDOWN) {
-            player.setGameMode(GameMode.SPECTATOR);
-            pendingPlayers.add(player.getUniqueId());
-            player.sendMessage(Component.text("Game in progress! Use /team and /kit to join.", NamedTextColor.YELLOW));
+            PlayerData data = teamManager.getPlayerData(player);
+            if (data.isReady()) {
+                if (state == GameState.RUNNING) {
+                    respawnPlayer(player, data);
+                } else {
+                    // In countdown - freeze and set to adventure
+                    Location spawn;
+                    if (data.getTeam() == PlayerData.Team.DEFENDERS) {
+                        spawn = getRandomSpawnAround(flagLocation, defenderSpawnRadius);
+                    } else {
+                        spawn = getSpawnOnPerimeter(attackerSpawnCenter, attackerSpawnRadius);
+                        player.setRespawnLocation(spawn, true);
+                    }
+                    player.teleport(spawn);
+                    player.setGameMode(GameMode.ADVENTURE);
+                    kitManager.applyKit(player, data.getKit(), data);
+                    frozenPlayers.add(player.getUniqueId());
+                }
+            } else {
+                player.setGameMode(GameMode.SPECTATOR);
+                pendingPlayers.add(player.getUniqueId());
+                player.sendMessage(Component.text("Game in progress! Use /team and /kit to join.", NamedTextColor.YELLOW));
+            }
         }
     }
 
@@ -552,18 +572,23 @@ public class GameManager {
         if (data.isReady()) {
             pendingPlayers.remove(player.getUniqueId());
 
-            int defenderRadius = plugin.getConfig().getInt("game.defender_spawn_radius", 20);
-
             Location spawn;
             if (data.getTeam() == PlayerData.Team.DEFENDERS) {
-                spawn = getRandomSpawnAround(flagLocation, defenderRadius);
+                spawn = getRandomSpawnAround(flagLocation, defenderSpawnRadius);
             } else {
                 spawn = getSpawnOnPerimeter(attackerSpawnCenter, attackerSpawnRadius);
                 player.setRespawnLocation(spawn, true);
             }
 
             player.teleport(spawn);
-            player.setGameMode(GameMode.SURVIVAL);
+            
+            if (state == GameState.COUNTDOWN) {
+                player.setGameMode(GameMode.ADVENTURE);
+                frozenPlayers.add(player.getUniqueId());
+            } else {
+                player.setGameMode(GameMode.SURVIVAL);
+            }
+            
             kitManager.applyKit(player, data.getKit(), data);
         }
     }
