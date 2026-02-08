@@ -110,3 +110,79 @@ kits:
         amount: 1
       - material: STONE_BRICKS
         amount: 128
+
+shop:
+  attackers:
+    title: "Attacker Shop"
+    trades:
+      - input_item: COPPER_INGOT
+        input_amount: 1
+        output_item: IRON_INGOT
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 4
+        output_item: GOLD_INGOT
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 16
+        output_item: DIAMOND
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 8
+        output_item: STONE_BRICKS
+        output_amount: 64
+      - input_item: COPPER_INGOT
+        input_amount: 4
+        output_item: RED_WOOL
+        output_amount: 64
+      - input_item: COPPER_INGOT
+        input_amount: 8
+        output_item: GOLDEN_APPLE
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 8
+        output_item: tnt
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 16
+        output_item: fireball
+        output_amount: 1
+  defenders:
+    title: "Defender Shop"
+    trades:
+      - input_item: COPPER_INGOT
+        input_amount: 1
+        output_item: IRON_INGOT
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 4
+        output_item: GOLD_INGOT
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 16
+        output_item: DIAMOND
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 8
+        output_item: STONE_BRICKS
+        output_amount: 64
+      - input_item: COPPER_INGOT
+        input_amount: 4
+        output_item: RED_WOOL
+        output_amount: 64
+      - input_item: COPPER_INGOT
+        input_amount: 8
+        output_item: GOLDEN_APPLE
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 8
+        output_item: tnt
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 16
+        output_item: fireball
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 32
+        output_item: alarm
+        output_amount: 1

@@ -23,6 +23,9 @@ commands:
     description: Give custom CTF items
     usage: /giveitem <fireball|tnt|alarm> [amount]
     permission: ctf.giveitem
+  shop:
+    description: Open the team shop
+    usage: /shop
 
 permissions:
   ctf.giveitem:

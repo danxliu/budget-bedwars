@@ -14,6 +14,7 @@ public class CTF extends JavaPlugin implements Listener {
     private KitManager kitManager;
     private GameManager gameManager;
     private CustomItemManager customItemManager;
+    private ShopManager shopManager;
 
     @Override
     public void onEnable() {
@@ -22,6 +23,8 @@ public class CTF extends JavaPlugin implements Listener {
         gameManager = new GameManager(this, teamManager, kitManager);
         customItemManager = new CustomItemManager(this, gameManager, teamManager);
         kitManager.setCustomItemManager(customItemManager);
+        shopManager = new ShopManager(this);
+        shopManager.setCustomItemManager(customItemManager);
 
         // Register commands
         TeamCommand teamCommand = new TeamCommand(teamManager, gameManager);
@@ -30,6 +33,7 @@ public class CTF extends JavaPlugin implements Listener {
         getCommand("chat").setExecutor(new ChatCommand(teamManager));
         getCommand("kit").setExecutor(kitCommand);
         getCommand("game").setExecutor(new GameCommand(gameManager));
+        getCommand("shop").setExecutor(new ShopCommand(teamManager, shopManager, gameManager));
 
         GiveItemCommand giveItemCommand = new GiveItemCommand(customItemManager);
         getCommand("giveitem").setExecutor(giveItemCommand);
@@ -40,6 +44,7 @@ public class CTF extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(new ChatListener(teamManager), this);
         Bukkit.getPluginManager().registerEvents(new GameListener(gameManager, teamManager), this);
         Bukkit.getPluginManager().registerEvents(new ItemListener(customItemManager), this);
+        Bukkit.getPluginManager().registerEvents(new ShopListener(shopManager), this);
     }
 
     public CustomItemManager getCustomItemManager() {
