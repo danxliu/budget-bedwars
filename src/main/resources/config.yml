@@ -6,7 +6,7 @@ game:
   world_seed: ""
   attacker_spawn_radius: 50
   defender_spawn_radius: 20
-  respawn_cooldown_seconds: 10
+  respawn_cooldown_seconds: 15
   attacker_copper_rate_seconds: 5
   defender_copper_rate_seconds: 5
   flag_location_max_attempts: 100
