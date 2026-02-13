@@ -2,6 +2,7 @@ package io.ocf;
 
 import io.ocf.items.AlarmItem;
 import io.ocf.items.FlagCompassItem;
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
@@ -42,6 +43,12 @@ public class GameManager {
     private BukkitTask zoneEffectsTask;
     private BukkitTask attackerSpawnerTask;
     private BukkitTask defenderSpawnerTask;
+
+    // Timer
+    private BossBar timerBar;
+    private int remainingSeconds;
+    private int totalSeconds;
+    private BukkitTask timerTask;
 
     public enum GameState {
         IDLE,       // No game active
@@ -510,10 +517,79 @@ public class GameManager {
                     // Start resource spawners
                     startResourceSpawners();
 
+                    // Start game timer
+                    startTimer();
+
                     cancel();
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L);
+    }
+
+    private void startTimer() {
+        int durationMinutes = plugin.getConfig().getInt("game.duration_minutes", 30);
+        totalSeconds = durationMinutes * 60;
+        remainingSeconds = totalSeconds;
+
+        timerBar = BossBar.bossBar(
+                getTimerTitle(),
+                1.0f,
+                BossBar.Color.BLUE,
+                BossBar.Overlay.PROGRESS
+        );
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.showBossBar(timerBar);
+        }
+
+        timerTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                remainingSeconds--;
+                if (remainingSeconds <= 0) {
+                    handleTimeExpired();
+                    this.cancel();
+                    return;
+                }
+                updateTimerBar();
+            }
+        }.runTaskTimer(plugin, 20L, 20L);
+    }
+
+    private void updateTimerBar() {
+        if (timerBar == null) return;
+        timerBar.name(getTimerTitle());
+        timerBar.progress((float) remainingSeconds / totalSeconds);
+    }
+
+    private Component getTimerTitle() {
+        return Component.text("Time Remaining: ", NamedTextColor.WHITE)
+                .append(Component.text(formatTime(remainingSeconds), NamedTextColor.YELLOW));
+    }
+
+    private String formatTime(int seconds) {
+        int mins = seconds / 60;
+        int secs = seconds % 60;
+        return String.format("%02d:%02d", mins, secs);
+    }
+
+    private void handleTimeExpired() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0f, 1.0f);
+            Title title = Title.title(
+                    Component.text("DEFENDERS WIN!", NamedTextColor.BLUE),
+                    Component.text("Time has expired!", NamedTextColor.GOLD),
+                    Title.Times.times(Duration.ZERO, Duration.ofSeconds(5), Duration.ofSeconds(2))
+            );
+            player.showTitle(title);
+        }
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                stop();
+            }
+        }.runTaskLater(plugin, 100L); // 5 seconds delay
     }
 
     public void handlePlayerDeath(Player player) {
@@ -587,6 +663,13 @@ private void respawnPlayer(Player player, PlayerData data) {
             );
             player.showTitle(title);
         }
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                stop();
+            }
+        }.runTaskLater(plugin, 100L); // 5 seconds delay
     }
 
     public void handleLateJoin(Player player) {
@@ -613,6 +696,10 @@ private void respawnPlayer(Player player, PlayerData data) {
                 player.setGameMode(GameMode.SPECTATOR);
                 pendingPlayers.add(player.getUniqueId());
                 player.sendMessage(Component.text("Game in progress! Use /team and /kit to join.", NamedTextColor.YELLOW));
+            }
+
+            if (timerBar != null) {
+                player.showBossBar(timerBar);
             }
         }
     }
@@ -670,6 +757,20 @@ private void respawnPlayer(Player player, PlayerData data) {
     }
 
     public void stop() {
+        // Cancel timer task
+        if (timerTask != null) {
+            timerTask.cancel();
+            timerTask = null;
+        }
+
+        // Remove boss bar from all players
+        if (timerBar != null) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                player.hideBossBar(timerBar);
+            }
+            timerBar = null;
+        }
+
         // Cancel all respawn tasks
         for (BukkitRunnable task : respawnTasks.values()) {
             task.cancel();

@@ -7,6 +7,7 @@ game:
   attacker_spawn_radius: 50
   defender_spawn_radius: 20
   respawn_cooldown_seconds: 15
+  duration_minutes: 30
   attacker_copper_rate_seconds: 5
   defender_copper_rate_seconds: 5
   flag_location_max_attempts: 100
