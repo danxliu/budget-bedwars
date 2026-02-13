@@ -40,8 +40,8 @@ public class GameManager {
     // Zone tasks
     private BukkitTask beamParticleTask;
     private BukkitTask zoneEffectsTask;
-    private BukkitTask resourceSpawnerTask;
-    private final List<Location> copperSpawners = new ArrayList<>();
+    private BukkitTask attackerSpawnerTask;
+    private BukkitTask defenderSpawnerTask;
 
     public enum GameState {
         IDLE,       // No game active
@@ -191,11 +191,6 @@ public class GameManager {
 
         // Create 5x5 stone brick platform at attacker spawn center
         createPlatform(attackerSpawnCenter);
-
-        // Initialize copper spawners
-        copperSpawners.clear();
-        copperSpawners.add(flagLocation.clone());
-        copperSpawners.add(attackerSpawnCenter.clone());
 
         // Teleport players to their spawns
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -423,33 +418,50 @@ public class GameManager {
     }
 
     private void startResourceSpawners() {
-        int rateSeconds = plugin.getConfig().getInt("game.copper_spawn_rate_seconds", 30);
-        long ticks = rateSeconds * 20L;
+        int attackerRate = plugin.getConfig().getInt("game.attacker_copper_rate_seconds", 5);
+        int defenderRate = plugin.getConfig().getInt("game.defender_copper_rate_seconds", 5);
 
-        resourceSpawnerTask = new BukkitRunnable() {
+        attackerSpawnerTask = new BukkitRunnable() {
             @Override
             public void run() {
                 if (state != GameState.RUNNING) {
                     this.cancel();
                     return;
                 }
-
-                for (Location loc : copperSpawners) {
-                    if (loc.getWorld() != null) {
-                        loc.getWorld().dropItemNaturally(loc, new org.bukkit.inventory.ItemStack(Material.COPPER_INGOT));
-                        loc.getWorld().playSound(loc, Sound.ENTITY_CHICKEN_EGG, 1.0f, 1.0f);
+                for (PlayerData data : teamManager.getTeamMembers(PlayerData.Team.ATTACKERS)) {
+                    Player p = data.getPlayer();
+                    if (p.isOnline()) {
+                        p.getInventory().addItem(new org.bukkit.inventory.ItemStack(Material.COPPER_INGOT));
+                        p.playSound(p.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1.0f, 1.0f);
                     }
                 }
             }
-        }.runTaskTimer(plugin, 0L, ticks);
+        }.runTaskTimer(plugin, 0L, attackerRate * 20L);
+
+        defenderSpawnerTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (state != GameState.RUNNING) {
+                    this.cancel();
+                    return;
+                }
+                if (flagLocation != null && flagLocation.getWorld() != null) {
+                    flagLocation.getWorld().dropItemNaturally(flagLocation, new org.bukkit.inventory.ItemStack(Material.COPPER_INGOT));
+                    flagLocation.getWorld().playSound(flagLocation, Sound.ENTITY_CHICKEN_EGG, 1.0f, 1.0f);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, defenderRate * 20L);
     }
 
     private void stopResourceSpawners() {
-        if (resourceSpawnerTask != null) {
-            resourceSpawnerTask.cancel();
-            resourceSpawnerTask = null;
+        if (attackerSpawnerTask != null) {
+            attackerSpawnerTask.cancel();
+            attackerSpawnerTask = null;
         }
-        copperSpawners.clear();
+        if (defenderSpawnerTask != null) {
+            defenderSpawnerTask.cancel();
+            defenderSpawnerTask = null;
+        }
     }
 
     private void startCountdown() {
