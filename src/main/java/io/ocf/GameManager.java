@@ -40,6 +40,8 @@ public class GameManager {
     // Zone tasks
     private BukkitTask beamParticleTask;
     private BukkitTask zoneEffectsTask;
+    private BukkitTask resourceSpawnerTask;
+    private final List<Location> copperSpawners = new ArrayList<>();
 
     public enum GameState {
         IDLE,       // No game active
@@ -189,6 +191,11 @@ public class GameManager {
 
         // Create 5x5 stone brick platform at attacker spawn center
         createPlatform(attackerSpawnCenter);
+
+        // Initialize copper spawners
+        copperSpawners.clear();
+        copperSpawners.add(flagLocation.clone());
+        copperSpawners.add(attackerSpawnCenter.clone());
 
         // Teleport players to their spawns
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -415,6 +422,36 @@ public class GameManager {
         }
     }
 
+    private void startResourceSpawners() {
+        int rateSeconds = plugin.getConfig().getInt("game.copper_spawn_rate_seconds", 30);
+        long ticks = rateSeconds * 20L;
+
+        resourceSpawnerTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (state != GameState.RUNNING) {
+                    this.cancel();
+                    return;
+                }
+
+                for (Location loc : copperSpawners) {
+                    if (loc.getWorld() != null) {
+                        loc.getWorld().dropItemNaturally(loc, new org.bukkit.inventory.ItemStack(Material.COPPER_INGOT));
+                        loc.getWorld().playSound(loc, Sound.ENTITY_CHICKEN_EGG, 1.0f, 1.0f);
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, ticks);
+    }
+
+    private void stopResourceSpawners() {
+        if (resourceSpawnerTask != null) {
+            resourceSpawnerTask.cancel();
+            resourceSpawnerTask = null;
+        }
+        copperSpawners.clear();
+    }
+
     private void startCountdown() {
         int countdownSeconds = plugin.getConfig().getInt("game.countdown_seconds", 5);
 
@@ -457,6 +494,9 @@ public class GameManager {
 
                     // Start zone tasks (beam particles, regen zone)
                     startZoneTasks();
+
+                    // Start resource spawners
+                    startResourceSpawners();
 
                     cancel();
                 }
@@ -634,6 +674,9 @@ private void respawnPlayer(Player player, PlayerData data) {
 
         // Stop zone tasks
         stopZoneTasks();
+
+        // Stop resource spawners
+        stopResourceSpawners();
 
         // Clear scoreboard teams
         teamManager.clearScoreboardTeams();
