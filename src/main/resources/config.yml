@@ -47,6 +47,8 @@ kits:
         amount: 1
       - custom_item: compass
         amount: 1
+      - material: BREAD
+        amount: 16
   crossbow:
     team: ATTACKERS
     armor:
@@ -65,6 +67,8 @@ kits:
         amount: 16
       - custom_item: compass
         amount: 1
+      - material: BREAD
+        amount: 16
 
   knight:
     team: DEFENDERS
@@ -80,6 +84,12 @@ kits:
         amount: 1
       - material: IRON_AXE
         amount: 1
+      - material: IRON_PICKAXE
+        amount: 1
+      - material: IRON_SHOVEL
+        amount: 1
+      - material: BREAD
+        amount: 16
 
   archer:
     team: DEFENDERS
@@ -97,6 +107,12 @@ kits:
           power: 1
       - material: ARROW
         amount: 64
+      - material: IRON_PICKAXE
+        amount: 1
+      - material: IRON_SHOVEL
+        amount: 1
+      - material: BREAD
+        amount: 16
 
   builder:
     team: DEFENDERS
@@ -112,6 +128,12 @@ kits:
         amount: 1
       - material: STONE_BRICKS
         amount: 128
+      - material: IRON_PICKAXE
+        amount: 1
+      - material: IRON_SHOVEL
+        amount: 1
+      - material: BREAD
+        amount: 16
 
 shop:
   attackers:
@@ -143,11 +165,15 @@ shop:
         output_amount: 1
       - input_item: COPPER_INGOT
         input_amount: 8
-        output_item: tnt
+        output_item: instant_tnt
         output_amount: 1
       - input_item: COPPER_INGOT
         input_amount: 16
         output_item: fireball
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 4
+        output_item: BREAD
         output_amount: 1
   defenders:
     title: "Defender Shop"
@@ -178,7 +204,7 @@ shop:
         output_amount: 1
       - input_item: COPPER_INGOT
         input_amount: 8
-        output_item: tnt
+        output_item: instant_tnt
         output_amount: 1
       - input_item: COPPER_INGOT
         input_amount: 16
@@ -187,4 +213,8 @@ shop:
       - input_item: COPPER_INGOT
         input_amount: 32
         output_item: alarm
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 4
+        output_item: BREAD
         output_amount: 1
