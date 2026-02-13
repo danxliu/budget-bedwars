@@ -174,7 +174,7 @@ shop:
       - input_item: COPPER_INGOT
         input_amount: 4
         output_item: BREAD
-        output_amount: 1
+        output_amount: 16
   defenders:
     title: "Defender Shop"
     trades:
@@ -217,4 +217,4 @@ shop:
       - input_item: COPPER_INGOT
         input_amount: 4
         output_item: BREAD
-        output_amount: 1
+        output_amount: 16
