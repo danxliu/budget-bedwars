@@ -90,6 +90,8 @@ kits:
         amount: 1
       - material: BREAD
         amount: 16
+      - material: COPPER_INGOT
+        amount: 20
 
   archer:
     team: DEFENDERS
@@ -113,6 +115,8 @@ kits:
         amount: 1
       - material: BREAD
         amount: 16
+      - material: COPPER_INGOT
+        amount: 20
 
   builder:
     team: DEFENDERS
@@ -134,6 +138,8 @@ kits:
         amount: 1
       - material: BREAD
         amount: 16
+      - material: COPPER_INGOT
+        amount: 20
 
 shop:
   attackers:

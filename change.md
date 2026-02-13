@@ -1,7 +1,7 @@
-Attacker copper spawn should be removed. Copper should be given directly to the individual attackers through inventory, albeit at a lower speed. Attacker and defender copper spawn speed should be separately configured in config.yml
-Add a timer. Defenders win when timer expires. Timer length should be configured in config.yml
-Turrets. Turret should be a derivation of skeleton mob. They should only be available to the defenders. They should only attack attackers. They should not expire, but can be killed like a normal mob.
-Give all defenders 20 copper ingots to start with.
-Change respawn time to 15s
-Change the TNT in the shop to instant tnt (existing custom item)
-Another custom item that upgrades the health regen ring around defendor spawn. Shown only to defenders. It costs 64 copper, and when upgraded, add another positive effect to the ring. level I = regneration, level II = regeneration 2, level III = regeneration 2 + strength 1
+- [x] Attacker copper spawn should be removed. Copper should be given directly to the individual attackers through inventory, albeit at a lower speed. Attacker and defender copper spawn speed should be separately configured in config.yml
+- [ ] Add a timer. Defenders win when timer expires. Timer length should be configured in config.yml
+- [ ] Turrets. Turret should be a derivation of skeleton mob. They should only be available to the defenders. They should only attack attackers. They should not expire, but can be killed like a normal mob.
+- [x] Give all defenders 20 copper ingots to start with.
+- [x] Change respawn time to 15s
+- [ ] Change the TNT in the shop to instant tnt (existing custom item)
+- [ ] Another custom item that upgrades the health regen ring around defendor spawn. Shown only to defenders. It costs 64 copper, and when upgraded, add another positive effect to the ring. level I = regneration, level II = regeneration 2, level III = regeneration 2 + strength 1
