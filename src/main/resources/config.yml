@@ -6,10 +6,11 @@ game:
   world_seed: ""
   attacker_spawn_radius: 50
   defender_spawn_radius: 20
-  respawn_cooldown_seconds: 15
+  attacker_respawn_cooldown_seconds: 15
+  defender_respawn_cooldown_seconds: 30
   duration_minutes: 30
-  attacker_copper_rate_seconds: 4
-  defender_copper_rate_seconds: 4
+  attacker_copper_rate_seconds: 3
+  defender_copper_rate_seconds: 2
   flag_location_max_attempts: 100
   countdown_seconds: 5
 
@@ -91,9 +92,6 @@ kits:
         amount: 1
       - material: BREAD
         amount: 16
-      - material: COPPER_INGOT
-        amount: 20
-
   archer:
     team: DEFENDERS
     armor:
@@ -116,8 +114,6 @@ kits:
         amount: 1
       - material: BREAD
         amount: 16
-      - material: COPPER_INGOT
-        amount: 20
 
   builder:
     team: DEFENDERS
@@ -139,8 +135,6 @@ kits:
         amount: 1
       - material: BREAD
         amount: 16
-      - material: COPPER_INGOT
-        amount: 20
 
 shop:
   attackers:
@@ -182,6 +176,10 @@ shop:
         input_amount: 4
         output_item: BREAD
         output_amount: 16
+      - input_item: COPPER_INGOT
+        input_amount: 8
+        output_item: SPONGE
+        output_amount: 1
   defenders:
     title: "Defender Shop"
     trades:
@@ -225,3 +223,7 @@ shop:
         input_amount: 4
         output_item: BREAD
         output_amount: 16
+      - input_item: COPPER_INGOT
+        input_amount: 8
+        output_item: SPONGE
+        output_amount: 1

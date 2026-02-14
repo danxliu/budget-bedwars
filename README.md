@@ -25,9 +25,9 @@ The game automatically handles world generation, team spawning, respawns, and wi
 6. Game ends when the flag is broken or stopped with `/game stop`
 
 ### Respawning
-- Players respawn after a configurable cooldown (default: 10 seconds)
-- Attackers respawn at their original spawn area
-- Defenders respawn near the flag
+- Players respawn after a configurable cooldown based on their team.
+- **Attackers**: (default: 10 seconds) respawn at their original spawn area.
+- **Defenders**: (default: 15 seconds) respawn near the flag.
 
 ### Late Join
 Players joining mid-game can select a team and kit, then spawn into the match.
@@ -69,7 +69,8 @@ game:
   world_seed: ""                    # Seed for world generation (empty = random)
   attacker_spawn_radius: 50         # Spawn spread radius for attackers
   defender_spawn_radius: 20         # Spawn spread radius for defenders
-  respawn_cooldown_seconds: 10      # Time before respawning
+  attacker_respawn_cooldown_seconds: 10 # Time before attackers respawn
+  defender_respawn_cooldown_seconds: 15 # Time before defenders respawn
   flag_location_max_attempts: 100   # Attempts to find valid flag location
   countdown_seconds: 5              # Pre-game countdown duration
 ```

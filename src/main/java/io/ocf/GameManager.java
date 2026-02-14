@@ -596,7 +596,10 @@ public class GameManager {
         if (state != GameState.RUNNING) return;
 
         PlayerData data = teamManager.getPlayerData(player);
-        int cooldown = plugin.getConfig().getInt("game.respawn_cooldown_seconds", 10);
+        String configKey = (data.getTeam() == PlayerData.Team.ATTACKERS)
+                ? "game.attacker_respawn_cooldown_seconds"
+                : "game.defender_respawn_cooldown_seconds";
+        int cooldown = plugin.getConfig().getInt(configKey, 10);
 
         // Set to spectator and freeze
         player.setGameMode(GameMode.SPECTATOR);
