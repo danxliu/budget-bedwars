@@ -19,22 +19,26 @@ kits:
     team: ATTACKERS
     armor:
       helmet: IRON_HELMET
+        enchantments:
+          aqua_affinity: 1
       chestplate: IRON_CHESTPLATE
       leggings: IRON_LEGGINGS
       boots: IRON_BOOTS
     items:
       - material: IRON_AXE
         amount: 1
-      - material: STONE_PICKAXE
+      - material: IRON_PICKAXE
         amount: 1
-      - material: STONE_SHOVEL
+      - material: IRON_SHOVEL
         amount: 1
       - custom_item: compass
         amount: 1
   sword:
     team: ATTACKERS
     armor:
-      helmet: IRON_HELMET
+    helmet: IRON_HELMET
+        enchantments:
+          aqua_affinity: 1
       chestplate: IRON_CHESTPLATE
       leggings: IRON_LEGGINGS
       boots: IRON_BOOTS
@@ -42,6 +46,8 @@ kits:
       - material: IRON_SWORD
         amount: 1
       - material: SHIELD
+        amount: 1
+      - material: IRON_AXE
         amount: 1
       - material: STONE_PICKAXE
         amount: 1
@@ -55,11 +61,15 @@ kits:
     team: ATTACKERS
     armor:
       helmet: IRON_HELMET
+        enchantments:
+          aqua_affinity: 1
       chestplate: IRON_CHESTPLATE
       leggings: IRON_LEGGINGS
       boots: IRON_BOOTS
     items:
       - material: CROSSBOW
+        amount: 1
+     - material: IRON_AXE
         amount: 1
       - material: STONE_PICKAXE
         amount: 1
@@ -149,7 +159,7 @@ shop:
         output_item: GOLD_INGOT
         output_amount: 1
       - input_item: COPPER_INGOT
-        input_amount: 16
+        input_amount: 12
         output_item: DIAMOND
         output_amount: 1
       - input_item: COPPER_INGOT
@@ -180,6 +190,10 @@ shop:
         input_amount: 8
         output_item: SPONGE
         output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 4
+        output_item: WIND_CHARGE 
+        output_amount: 1
   defenders:
     title: "Defender Shop"
     trades:
@@ -192,7 +206,7 @@ shop:
         output_item: GOLD_INGOT
         output_amount: 1
       - input_item: COPPER_INGOT
-        input_amount: 16
+        input_amount: 12
         output_item: DIAMOND
         output_amount: 1
       - input_item: COPPER_INGOT
@@ -226,4 +240,8 @@ shop:
       - input_item: COPPER_INGOT
         input_amount: 8
         output_item: SPONGE
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 4
+        output_item: WIND_CHARGE 
         output_amount: 1
