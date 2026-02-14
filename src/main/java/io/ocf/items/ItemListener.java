@@ -5,14 +5,19 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ItemListener implements Listener {
     private final CustomItemManager itemManager;
@@ -99,6 +104,29 @@ public class ItemListener implements Listener {
             if (success && customItem.isConsumeOnUse() && player.getGameMode() != GameMode.CREATIVE) {
                 item.setAmount(item.getAmount() - 1);
             }
+        }
+    }
+
+    @EventHandler
+    public void onProjectileHit(ProjectileHitEvent event) {
+        if (!(event.getEntity() instanceof Fireball fireball)) return;
+        if (!fireball.hasMetadata("nuke_rocket")) return;
+
+        Location loc = fireball.getLocation();
+        Player shooter = fireball.getShooter() instanceof Player p ? p : null;
+
+        // Spawn a cluster of TNTs
+        for (int i = 0; i < 8; i++) {
+            TNTPrimed tnt = loc.getWorld().spawn(loc, TNTPrimed.class);
+            tnt.setFuseTicks(10 + ThreadLocalRandom.current().nextInt(20));
+            tnt.setSource(shooter);
+            
+            // Random velocity
+            tnt.setVelocity(new org.bukkit.util.Vector(
+                ThreadLocalRandom.current().nextDouble(-0.5, 0.5),
+                ThreadLocalRandom.current().nextDouble(0.2, 0.8),
+                ThreadLocalRandom.current().nextDouble(-0.5, 0.5)
+            ));
         }
     }
 }
