@@ -26,10 +26,10 @@ public class KitManager {
     public static class Kit {
         private final String name;
         private final PlayerData.Team team;
-        private final Map<String, Material> armor;
+        private final Map<String, KitItem> armor;
         private final List<KitItem> items;
 
-        public Kit(String name, PlayerData.Team team, Map<String, Material> armor, List<KitItem> items) {
+        public Kit(String name, PlayerData.Team team, Map<String, KitItem> armor, List<KitItem> items) {
             this.name = name;
             this.team = team;
             this.armor = armor;
@@ -38,7 +38,7 @@ public class KitManager {
 
         public String getName() { return name; }
         public PlayerData.Team getTeam() { return team; }
-        public Map<String, Material> getArmor() { return armor; }
+        public Map<String, KitItem> getArmor() { return armor; }
         public List<KitItem> getItems() { return items; }
     }
 
@@ -76,6 +76,46 @@ public class KitManager {
         }
     }
 
+    private KitItem parseKitItem(Map<?, ?> itemMap) {
+        int amount = itemMap.get("amount") instanceof Number n ? n.intValue() : 1;
+
+        // Check for custom_item first
+        String customItemId = (String) itemMap.get("custom_item");
+        if (customItemId != null) {
+            return new KitItem(null, customItemId, amount, new HashMap<>());
+        }
+
+        // Otherwise parse as regular material
+        String materialStr = (String) itemMap.get("material");
+        Material material = Material.matchMaterial(materialStr);
+        if (material == null) return null;
+
+        Map<Enchantment, Integer> enchantments = parseEnchantments(itemMap.get("enchantments"));
+        return new KitItem(material, null, amount, enchantments);
+    }
+
+    private Map<Enchantment, Integer> parseEnchantments(Object enchObj) {
+        Map<Enchantment, Integer> enchantments = new HashMap<>();
+        Map<?, ?> enchMap = null;
+        
+        if (enchObj instanceof Map<?, ?>) {
+            enchMap = (Map<?, ?>) enchObj;
+        } else if (enchObj instanceof ConfigurationSection) {
+            enchMap = ((ConfigurationSection) enchObj).getValues(false);
+        }
+
+        if (enchMap != null) {
+            for (Map.Entry<?, ?> entry : enchMap.entrySet()) {
+                NamespacedKey key = NamespacedKey.minecraft(entry.getKey().toString().toLowerCase());
+                Enchantment ench = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT).get(key);
+                if (ench != null && entry.getValue() instanceof Number n) {
+                    enchantments.put(ench, n.intValue());
+                }
+            }
+        }
+        return enchantments;
+    }
+
     public KitManager(JavaPlugin plugin) {
         this.plugin = plugin;
         loadKits();
@@ -103,15 +143,23 @@ public class KitManager {
             } catch (IllegalArgumentException ignored) {}
 
             // Parse armor
-            Map<String, Material> armor = new HashMap<>();
+            Map<String, KitItem> armor = new HashMap<>();
             ConfigurationSection armorSection = kitSection.getConfigurationSection("armor");
             if (armorSection != null) {
                 for (String slot : armorSection.getKeys(false)) {
-                    String materialStr = armorSection.getString(slot);
-                    if (materialStr != null) {
-                        Material material = Material.matchMaterial(materialStr);
-                        if (material != null) {
-                            armor.put(slot, material);
+                    if (armorSection.isConfigurationSection(slot)) {
+                        ConfigurationSection slotSection = armorSection.getConfigurationSection(slot);
+                        KitItem item = parseKitItem(slotSection.getValues(false));
+                        if (item != null) {
+                            armor.put(slot, item);
+                        }
+                    } else {
+                        String materialStr = armorSection.getString(slot);
+                        if (materialStr != null) {
+                            Material material = Material.matchMaterial(materialStr);
+                            if (material != null) {
+                                armor.put(slot, new KitItem(material, null, 1, new HashMap<>()));
+                            }
                         }
                     }
                 }
@@ -123,33 +171,10 @@ public class KitManager {
             if (itemsList != null) {
                 for (Object obj : itemsList) {
                     if (obj instanceof Map<?, ?> itemMap) {
-                        int amount = itemMap.get("amount") instanceof Number n ? n.intValue() : 1;
-                        
-                        // Check for custom_item first
-                        String customItemId = (String) itemMap.get("custom_item");
-                        if (customItemId != null) {
-                            items.add(new KitItem(null, customItemId, amount, new HashMap<>()));
-                            continue;
+                        KitItem item = parseKitItem(itemMap);
+                        if (item != null) {
+                            items.add(item);
                         }
-                        
-                        // Otherwise parse as regular material
-                        String materialStr = (String) itemMap.get("material");
-                        Material material = Material.matchMaterial(materialStr);
-                        if (material == null) continue;
-
-                        Map<Enchantment, Integer> enchantments = new HashMap<>();
-                        Object enchObj = itemMap.get("enchantments");
-                        if (enchObj instanceof Map<?, ?> enchMap) {
-                            for (Map.Entry<?, ?> entry : enchMap.entrySet()) {
-                                NamespacedKey key = NamespacedKey.minecraft(entry.getKey().toString().toLowerCase());
-                                Enchantment ench = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT).get(key);
-                                if (ench != null && entry.getValue() instanceof Number n) {
-                                    enchantments.put(ench, n.intValue());
-                                }
-                            }
-                        }
-
-                        items.add(new KitItem(material, null, amount, enchantments));
                     }
                 }
             }
@@ -179,11 +204,11 @@ public class KitManager {
         inv.clear();
 
         // Apply armor
-        Map<String, Material> armor = kit.getArmor();
-        if (armor.containsKey("helmet")) inv.setHelmet(new ItemStack(armor.get("helmet")));
-        if (armor.containsKey("chestplate")) inv.setChestplate(new ItemStack(armor.get("chestplate")));
-        if (armor.containsKey("leggings")) inv.setLeggings(new ItemStack(armor.get("leggings")));
-        if (armor.containsKey("boots")) inv.setBoots(new ItemStack(armor.get("boots")));
+        Map<String, KitItem> armor = kit.getArmor();
+        if (armor.containsKey("helmet")) inv.setHelmet(armor.get("helmet").toItemStack());
+        if (armor.containsKey("chestplate")) inv.setChestplate(armor.get("chestplate").toItemStack());
+        if (armor.containsKey("leggings")) inv.setLeggings(armor.get("leggings").toItemStack());
+        if (armor.containsKey("boots")) inv.setBoots(armor.get("boots").toItemStack());
 
         // Apply items
         for (KitItem item : kit.getItems()) {

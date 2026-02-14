@@ -18,7 +18,8 @@ kits:
   axe:
     team: ATTACKERS
     armor:
-      helmet: IRON_HELMET
+      helmet:
+        material: IRON_HELMET
         enchantments:
           aqua_affinity: 1
       chestplate: IRON_CHESTPLATE
@@ -36,7 +37,8 @@ kits:
   sword:
     team: ATTACKERS
     armor:
-    helmet: IRON_HELMET
+      helmet:
+        material: IRON_HELMET
         enchantments:
           aqua_affinity: 1
       chestplate: IRON_CHESTPLATE
@@ -60,7 +62,8 @@ kits:
   crossbow:
     team: ATTACKERS
     armor:
-      helmet: IRON_HELMET
+      helmet:
+        material: IRON_HELMET
         enchantments:
           aqua_affinity: 1
       chestplate: IRON_CHESTPLATE
@@ -69,7 +72,7 @@ kits:
     items:
       - material: CROSSBOW
         amount: 1
-     - material: IRON_AXE
+      - material: IRON_AXE
         amount: 1
       - material: STONE_PICKAXE
         amount: 1
