@@ -8,8 +8,8 @@ game:
   defender_spawn_radius: 20
   respawn_cooldown_seconds: 15
   duration_minutes: 30
-  attacker_copper_rate_seconds: 5
-  defender_copper_rate_seconds: 5
+  attacker_copper_rate_seconds: 4
+  defender_copper_rate_seconds: 4
   flag_location_max_attempts: 100
   countdown_seconds: 5
 
@@ -17,10 +17,10 @@ kits:
   axe:
     team: ATTACKERS
     armor:
-      helmet: LEATHER_HELMET
-      chestplate: LEATHER_CHESTPLATE
-      leggings: LEATHER_LEGGINGS
-      boots: LEATHER_BOOTS
+      helmet: IRON_HELMET
+      chestplate: IRON_CHESTPLATE
+      leggings: IRON_LEGGINGS
+      boots: IRON_BOOTS
     items:
       - material: IRON_AXE
         amount: 1
@@ -33,10 +33,10 @@ kits:
   sword:
     team: ATTACKERS
     armor:
-      helmet: LEATHER_HELMET
-      chestplate: LEATHER_CHESTPLATE
-      leggings: LEATHER_LEGGINGS
-      boots: LEATHER_BOOTS
+      helmet: IRON_HELMET
+      chestplate: IRON_CHESTPLATE
+      leggings: IRON_LEGGINGS
+      boots: IRON_BOOTS
     items:
       - material: IRON_SWORD
         amount: 1
@@ -53,10 +53,10 @@ kits:
   crossbow:
     team: ATTACKERS
     armor:
-      helmet: LEATHER_HELMET
-      chestplate: LEATHER_CHESTPLATE
-      leggings: LEATHER_LEGGINGS
-      boots: LEATHER_BOOTS
+      helmet: IRON_HELMET
+      chestplate: IRON_CHESTPLATE
+      leggings: IRON_LEGGINGS
+      boots: IRON_BOOTS
     items:
       - material: CROSSBOW
         amount: 1
@@ -122,10 +122,10 @@ kits:
   builder:
     team: DEFENDERS
     armor:
-      helmet: CHAINMAIL_HELMET
-      chestplate: CHAINMAIL_CHESTPLATE
-      leggings: CHAINMAIL_LEGGINGS
-      boots: CHAINMAIL_BOOTS
+      helmet: IRON_HELMET
+      chestplate: IRON_CHESTPLATE
+      leggings: IRON_LEGGINGS
+      boots: IRON_BOOTS
     items:
       - material: IRON_SWORD
         amount: 1
