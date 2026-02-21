@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -62,8 +63,24 @@ public class GameListener implements Listener {
     }
 
     @EventHandler
+    public void onBlockDamage(BlockDamageEvent event) {
+        Player player = event.getPlayer();
+        if (gameManager.isRunning()) {
+            if (event.getBlock().getType() == Material.GOLD_BLOCK && gameManager.getGoldBlocks().contains(event.getBlock().getLocation())) {
+                PlayerData data = teamManager.getPlayerData(player);
+                if (data.getTeam() == PlayerData.Team.ATTACKERS) {
+                    gameManager.notifyGoldAttacked(player, event.getBlock());
+                }
+            }
+        }
+    }
+
+    @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
+
+        // Disable block drops for all blocks
+        event.setDropItems(false);
 
         // Prevent block breaking during countdown
         if (gameManager.isInCountdown() || gameManager.isFrozen(player)) {
@@ -71,18 +88,15 @@ public class GameListener implements Listener {
             return;
         }
 
-        // Check for flag break
+        // Check for gold block break
         if (gameManager.isRunning()) {
-            Location flagLoc = gameManager.getFlagLocation();
-            if (flagLoc != null && event.getBlock().getLocation().equals(flagLoc.getBlock().getLocation())) {
-                if (event.getBlock().getType() == Material.ANCIENT_DEBRIS) {
-                    PlayerData data = teamManager.getPlayerData(player);
-                    if (data.getTeam() == PlayerData.Team.ATTACKERS) {
-                        gameManager.handleFlagBroken(player);
-                    } else {
-                        // Defenders can't break their own flag
-                        event.setCancelled(true);
-                    }
+            if (event.getBlock().getType() == Material.GOLD_BLOCK && gameManager.getGoldBlocks().contains(event.getBlock().getLocation())) {
+                PlayerData data = teamManager.getPlayerData(player);
+                if (data.getTeam() == PlayerData.Team.ATTACKERS) {
+                    gameManager.handleGoldBroken(player, event.getBlock());
+                } else {
+                    // Defenders can't break their own gold blocks
+                    event.setCancelled(true);
                 }
             }
         }

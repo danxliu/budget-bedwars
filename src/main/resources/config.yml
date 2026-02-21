@@ -13,80 +13,10 @@ game:
   defender_copper_rate_seconds: 2
   flag_location_max_attempts: 100
   countdown_seconds: 5
+  sky_platform_height_offset: 20
 
 kits:
-  axe:
-    team: ATTACKERS
-    armor:
-      helmet:
-        material: IRON_HELMET
-        enchantments:
-          aqua_affinity: 1
-      chestplate: IRON_CHESTPLATE
-      leggings: IRON_LEGGINGS
-      boots: IRON_BOOTS
-    items:
-      - material: IRON_AXE
-        amount: 1
-      - material: IRON_PICKAXE
-        amount: 1
-      - material: IRON_SHOVEL
-        amount: 1
-      - custom_item: compass
-        amount: 1
-  sword:
-    team: ATTACKERS
-    armor:
-      helmet:
-        material: IRON_HELMET
-        enchantments:
-          aqua_affinity: 1
-      chestplate: IRON_CHESTPLATE
-      leggings: IRON_LEGGINGS
-      boots: IRON_BOOTS
-    items:
-      - material: IRON_SWORD
-        amount: 1
-      - material: SHIELD
-        amount: 1
-      - material: IRON_AXE
-        amount: 1
-      - material: STONE_PICKAXE
-        amount: 1
-      - material: STONE_SHOVEL
-        amount: 1
-      - custom_item: compass
-        amount: 1
-      - material: BREAD
-        amount: 16
-  crossbow:
-    team: ATTACKERS
-    armor:
-      helmet:
-        material: IRON_HELMET
-        enchantments:
-          aqua_affinity: 1
-      chestplate: IRON_CHESTPLATE
-      leggings: IRON_LEGGINGS
-      boots: IRON_BOOTS
-    items:
-      - material: CROSSBOW
-        amount: 1
-      - material: IRON_AXE
-        amount: 1
-      - material: STONE_PICKAXE
-        amount: 1
-      - material: STONE_SHOVEL
-        amount: 1
-      - material: ARROW
-        amount: 16
-      - custom_item: compass
-        amount: 1
-      - material: BREAD
-        amount: 16
-
   knight:
-    team: DEFENDERS
     armor:
       helmet: DIAMOND_HELMET
       chestplate: DIAMOND_CHESTPLATE
@@ -105,8 +35,11 @@ kits:
         amount: 1
       - material: BREAD
         amount: 16
+      - material: BLUE_WOOL
+        amount: 64
+      - custom_item: compass
+        amount: 1
   archer:
-    team: DEFENDERS
     armor:
       helmet: IRON_HELMET
       chestplate: IRON_CHESTPLATE
@@ -127,9 +60,12 @@ kits:
         amount: 1
       - material: BREAD
         amount: 16
+      - material: BLUE_WOOL
+        amount: 64
+      - custom_item: compass
+        amount: 1
 
   builder:
-    team: DEFENDERS
     armor:
       helmet: IRON_HELMET
       chestplate: IRON_CHESTPLATE
@@ -148,30 +84,26 @@ kits:
         amount: 1
       - material: BREAD
         amount: 16
+      - material: BLUE_WOOL
+        amount: 64
+      - custom_item: compass
+        amount: 1
 
 shop:
   attackers:
     title: "Attacker Shop"
     trades:
       - input_item: COPPER_INGOT
-        input_amount: 1
-        output_item: IRON_INGOT
-        output_amount: 1
-      - input_item: COPPER_INGOT
-        input_amount: 4
-        output_item: GOLD_INGOT
-        output_amount: 1
-      - input_item: COPPER_INGOT
-        input_amount: 12
-        output_item: DIAMOND
-        output_amount: 1
-      - input_item: COPPER_INGOT
-        input_amount: 8
-        output_item: STONE_BRICKS
-        output_amount: 64
-      - input_item: COPPER_INGOT
         input_amount: 4
         output_item: RED_WOOL
+        output_amount: 64
+      - input_item: COPPER_INGOT
+        input_amount: 16
+        output_item: END_STONE
+        output_amount: 64
+      - input_item: COPPER_INGOT
+        input_amount: 16
+        output_item: STONE_BRICK
         output_amount: 64
       - input_item: COPPER_INGOT
         input_amount: 8
@@ -190,35 +122,27 @@ shop:
         output_item: BREAD
         output_amount: 16
       - input_item: COPPER_INGOT
-        input_amount: 8
-        output_item: SPONGE
-        output_amount: 1
-      - input_item: COPPER_INGOT
         input_amount: 4
         output_item: WIND_CHARGE 
+        output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 16
+        output_item: ENDER_PEARL
         output_amount: 1
   defenders:
     title: "Defender Shop"
     trades:
       - input_item: COPPER_INGOT
-        input_amount: 1
-        output_item: IRON_INGOT
-        output_amount: 1
-      - input_item: COPPER_INGOT
-        input_amount: 4
-        output_item: GOLD_INGOT
-        output_amount: 1
-      - input_item: COPPER_INGOT
-        input_amount: 12
-        output_item: DIAMOND
-        output_amount: 1
-      - input_item: COPPER_INGOT
-        input_amount: 8
-        output_item: STONE_BRICKS
-        output_amount: 64
-      - input_item: COPPER_INGOT
         input_amount: 4
         output_item: RED_WOOL
+        output_amount: 64
+      - input_item: COPPER_INGOT
+        input_amount: 16
+        output_item: END_STONE
+        output_amount: 64
+      - input_item: COPPER_INGOT
+        input_amount: 16
+        output_item: STONE_BRICK
         output_amount: 64
       - input_item: COPPER_INGOT
         input_amount: 8
@@ -233,18 +157,14 @@ shop:
         output_item: fireball
         output_amount: 1
       - input_item: COPPER_INGOT
-        input_amount: 32
-        output_item: alarm
-        output_amount: 1
-      - input_item: COPPER_INGOT
         input_amount: 4
         output_item: BREAD
         output_amount: 16
       - input_item: COPPER_INGOT
-        input_amount: 8
-        output_item: SPONGE
+        input_amount: 4
+        output_item: WIND_CHARGE
         output_amount: 1
       - input_item: COPPER_INGOT
-        input_amount: 4
-        output_item: WIND_CHARGE 
+        input_amount: 16
+        output_item: ENDER_PEARL
         output_amount: 1

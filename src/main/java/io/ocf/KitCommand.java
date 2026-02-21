@@ -44,10 +44,9 @@ public class KitCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (kitManager.applyKit(player, args[0], playerData)) {
-            // Check if pending player is now ready
-            gameManager.checkPendingPlayer(player);
-        }
+        gameManager.handleKitChange(player, args[0]);
+        // Check if pending player is now ready (e.g. they chose their first kit)
+        gameManager.checkPendingPlayer(player);
         return true;
     }
 

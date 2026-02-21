@@ -28,6 +28,7 @@ public class GameManager {
     private World lobbyWorld;
     private int borderSize;
     private Location flagLocation;
+    private final Set<Location> goldBlocks = new HashSet<>();
     private Location attackerSpawnCenter;
     private int attackerSpawnRadius;
     private final Set<UUID> frozenPlayers = new HashSet<>();
@@ -49,6 +50,8 @@ public class GameManager {
     private int remainingSeconds;
     private int totalSeconds;
     private BukkitTask timerTask;
+
+    private long lastGoldNotificationTime = 0;
 
     public enum GameState {
         IDLE,       // No game active
@@ -186,9 +189,6 @@ public class GameManager {
             return false;
         }
 
-        // Place the flag (ancient_debris)
-        flagLocation.getBlock().setType(Material.ANCIENT_DEBRIS);
-
         // Calculate attacker spawn (opposite quadrant)
         attackerSpawnCenter = calculateOppositeQuadrant(flagLocation);
 
@@ -260,16 +260,32 @@ public class GameManager {
         }
 
         Block highestBlock = gameWorld.getHighestBlockAt(selectedX, selectedZ);
-        Location platformLoc = highestBlock.getLocation().add(0, 1, 0);
+        
+        // Move to sky platform (ground + offset, capped)
+        int heightOffset = plugin.getConfig().getInt("game.sky_platform_height_offset", 50);
+        int y = Math.min(highestBlock.getY() + heightOffset, gameWorld.getMaxHeight() - 5);
+        Location platformLoc = new Location(gameWorld, selectedX, y, selectedZ);
 
-        // Always create 5x5 stone brick platform
+        // Clear gold blocks set
+        goldBlocks.clear();
+
+        // Create 5x5 stone brick platform
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
                 platformLoc.clone().add(dx, 0, dz).getBlock().setType(Material.STONE_BRICKS);
             }
         }
 
-        return platformLoc.add(0, 1, 0);
+        // Create 3x3 gold blocks on top
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                Location goldLoc = platformLoc.clone().add(dx, 1, dz);
+                goldLoc.getBlock().setType(Material.GOLD_BLOCK);
+                goldBlocks.add(goldLoc.getBlock().getLocation());
+            }
+        }
+
+        return platformLoc.add(0, 1, 0); // Center of the 3x3 gold area
     }
 
     private boolean isValidSpawnBlock(Material type) {
@@ -406,9 +422,9 @@ public class GameManager {
             double angle = i * Math.PI / 24;
             double x = flagLocation.getX() + defenderSpawnRadius * Math.cos(angle);
             double z = flagLocation.getZ() + defenderSpawnRadius * Math.sin(angle);
-            int y = gameWorld.getHighestBlockYAt((int) x, (int) z) + 2;
             
-            Location particleLoc = new Location(gameWorld, x, y, z);
+            // Spawn at the platform level
+            Location particleLoc = new Location(gameWorld, x, flagLocation.getY() + 1, z);
             gameWorld.spawnParticle(Particle.HAPPY_VILLAGER, particleLoc, 8, 0.3, 0.8, 0.3, 0);
         }
     }
@@ -655,13 +671,77 @@ private void respawnPlayer(Player player, PlayerData data) {
         }
     }
 
-    public void handleFlagBroken(Player breaker) {
+    public void notifyGoldAttacked(Player attacker, Block block) {
+        if (!goldBlocks.contains(block.getLocation())) return;
+
+        // Add 3 second cooldown to prevent spam
+        long now = System.currentTimeMillis();
+        if (now - lastGoldNotificationTime < 3000) return;
+        lastGoldNotificationTime = now;
+
+        // Broadcast notification
+        Component msg = Component.text(attacker.getName() + " is attacking a gold block!", NamedTextColor.RED);
+        
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.sendMessage(msg);
+            p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_PLACE, 0.5f, 1.5f);
+            
+            // Special notification for defenders
+            PlayerData data = teamManager.getPlayerData(p);
+            if (data.getTeam() == PlayerData.Team.DEFENDERS) {
+                p.showTitle(Title.title(
+                        Component.text("GOAL UNDER ATTACK!", NamedTextColor.RED),
+                        Component.text(attacker.getName() + " is breaking gold!", NamedTextColor.GOLD),
+                        Title.Times.times(Duration.ZERO, Duration.ofSeconds(1), Duration.ofMillis(500))
+                ));
+            }
+        }
+    }
+
+    public void handleGoldBroken(Player breaker, Block block) {
+        if (!goldBlocks.contains(block.getLocation())) return;
+
+        goldBlocks.remove(block.getLocation());
+        int remaining = goldBlocks.size();
+
+        // Broadcast remaining count
+        Component msg = Component.text("A gold block has been destroyed! ", NamedTextColor.YELLOW)
+                .append(Component.text("(" + remaining + "/9 remaining)", NamedTextColor.GOLD));
+        
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.sendMessage(msg);
+            p.playSound(p.getLocation(), Sound.BLOCK_METAL_BREAK, 1.0f, 1.0f);
+        }
+
+        if (goldBlocks.isEmpty()) {
+            handleAttackersWin(breaker);
+        }
+    }
+
+    public void handleKitChange(Player player, String kitName) {
+        PlayerData data = teamManager.getPlayerData(player);
+        if (!kitManager.isValidKitForPlayer(player, kitName, data.getTeam())) {
+            return;
+        }
+
+        if (state == GameState.RUNNING) {
+            data.setKit(kitName.toLowerCase());
+            player.sendMessage(Component.text("Kit selection updated to '", NamedTextColor.GREEN)
+                    .append(Component.text(kitName, NamedTextColor.GOLD))
+                    .append(Component.text("'. It will be applied on your next respawn!", NamedTextColor.GREEN)));
+        } else {
+            // Apply immediately if not running
+            kitManager.applyKit(player, kitName, data);
+        }
+    }
+
+    private void handleAttackersWin(Player breaker) {
         // Play ender dragon death sound globally
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0f, 1.0f);
             Title title = Title.title(
                     Component.text("ATTACKERS WIN!", NamedTextColor.RED),
-                    Component.text(breaker.getName() + " captured the flag!", NamedTextColor.GOLD),
+                    Component.text(breaker.getName() + " destroyed all gold blocks!", NamedTextColor.GOLD),
                     Title.Times.times(Duration.ZERO, Duration.ofSeconds(5), Duration.ofSeconds(2))
             );
             player.showTitle(title);
@@ -759,6 +839,10 @@ private void respawnPlayer(Player player, PlayerData data) {
         return flagLocation;
     }
 
+    public Set<Location> getGoldBlocks() {
+        return goldBlocks;
+    }
+
     public void stop() {
         // Cancel timer task
         if (timerTask != null) {
@@ -815,6 +899,7 @@ private void respawnPlayer(Player player, PlayerData data) {
         }
 
         flagLocation = null;
+        goldBlocks.clear();
         attackerSpawnCenter = null;
         state = GameState.IDLE;
 

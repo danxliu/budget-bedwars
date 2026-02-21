@@ -186,20 +186,27 @@ public class KitManager {
         plugin.getLogger().info("Loaded " + kits.size() + " kits total");
     }
 
-    public boolean applyKit(Player player, String kitName, PlayerData playerData) {
+    public boolean isValidKitForPlayer(Player player, String kitName, PlayerData.Team playerTeam) {
         Kit kit = kits.get(kitName.toLowerCase());
         if (kit == null) {
             player.sendMessage(Component.text("Kit '" + kitName + "' not found!", NamedTextColor.RED));
             return false;
         }
 
-        PlayerData.Team playerTeam = playerData.getTeam();
         if (kit.getTeam() != null && playerTeam != kit.getTeam()) {
             String teamName = kit.getTeam() == PlayerData.Team.ATTACKERS ? "Attackers" : "Defenders";
             player.sendMessage(Component.text("This kit is only for " + teamName + "!", NamedTextColor.RED));
             return false;
         }
+        return true;
+    }
 
+    public boolean applyKit(Player player, String kitName, PlayerData playerData) {
+        if (!isValidKitForPlayer(player, kitName, playerData.getTeam())) {
+            return false;
+        }
+
+        Kit kit = kits.get(kitName.toLowerCase());
         PlayerInventory inv = player.getInventory();
         inv.clear();
 
@@ -211,6 +218,7 @@ public class KitManager {
         if (armor.containsKey("boots")) inv.setBoots(armor.get("boots").toItemStack());
 
         // Apply items
+        PlayerData.Team playerTeam = playerData.getTeam();
         for (KitItem item : kit.getItems()) {
             if (item.isCustomItem()) {
                 // Get custom item from CustomItemManager
@@ -223,7 +231,16 @@ public class KitManager {
                     }
                 }
             } else {
-                inv.addItem(item.toItemStack());
+                ItemStack itemStack = item.toItemStack();
+                // Dynamic wool color based on player team
+                if (itemStack.getType() == Material.RED_WOOL || itemStack.getType() == Material.BLUE_WOOL) {
+                    if (playerTeam == PlayerData.Team.ATTACKERS) {
+                        itemStack.setType(Material.RED_WOOL);
+                    } else if (playerTeam == PlayerData.Team.DEFENDERS) {
+                        itemStack.setType(Material.BLUE_WOOL);
+                    }
+                }
+                inv.addItem(itemStack);
             }
         }
 
