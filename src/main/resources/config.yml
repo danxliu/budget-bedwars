@@ -18,20 +18,18 @@ game:
 kits:
   knight:
     armor:
-      helmet: DIAMOND_HELMET
-      chestplate: DIAMOND_CHESTPLATE
-      leggings: DIAMOND_LEGGINGS
-      boots: DIAMOND_BOOTS
+      helmet: IRON_HELMET
+      chestplate: IRON_HELMET
+      leggings: IRON_HELMET
+      boots: IRON_HELMET
     items:
       - material: DIAMOND_SWORD
         amount: 1
       - material: SHIELD
         amount: 1
-      - material: IRON_AXE
+      - material: DIAMOND_AXE
         amount: 1
-      - material: IRON_PICKAXE
-        amount: 1
-      - material: IRON_SHOVEL
+      - material: WOODEN_PICKAXE
         amount: 1
       - material: BREAD
         amount: 16
@@ -48,15 +46,16 @@ kits:
     items:
       - material: IRON_SWORD
         amount: 1
+      - material: SHIELD
+        amount: 1
       - material: BOW
         amount: 1
         enchantments:
           power: 1
+          infinity: 1
       - material: ARROW
         amount: 64
-      - material: IRON_PICKAXE
-        amount: 1
-      - material: IRON_SHOVEL
+      - material: WOODEN_PICKAXE
         amount: 1
       - material: BREAD
         amount: 16
@@ -74,13 +73,38 @@ kits:
     items:
       - material: IRON_SWORD
         amount: 1
+      - material: SHIELD
+        amount: 1
       - material: DIAMOND_PICKAXE
+        amount: 1
+      - material: SHEARS
         amount: 1
       - material: STONE_BRICKS
         amount: 128
-      - material: IRON_PICKAXE
-        amount: 1
       - material: IRON_SHOVEL
+        amount: 1
+      - material: BREAD
+        amount: 16
+      - material: BLUE_WOOL
+        amount: 64
+      - custom_item: compass
+        amount: 1
+  newgen:
+    armor:
+      helmet: IRON_HELMET
+      chestplate: IRON_CHESTPLATE
+      leggings: IRON_LEGGINGS
+      boots: IRON_BOOTS
+    items:
+      - material: STONE_SWORD
+        amount: 1
+      - material: SHIELD
+        amount: 1
+      - material: WOODEN_PICKAXE
+        amount: 1
+      - material: MACE
+        amount: 1
+      - material: DIAMOND_SPEAR
         amount: 1
       - material: BREAD
         amount: 16
