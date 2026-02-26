@@ -28,12 +28,11 @@ public class FlagCompassItem extends CustomItem {
             "compass",
             Component.text("Flag Compass", NamedTextColor.GOLD),
             Material.COMPASS,
-            PlayerData.Team.ATTACKERS,
+            null, // Any team
             false, // Not consumed on use
             TriggerType.INTERACT,
             List.of(
-                Component.text("Points to the flag location", NamedTextColor.GRAY),
-                Component.text("Attackers only", NamedTextColor.RED)
+                Component.text("Points to the flag location", NamedTextColor.GRAY)
             )
         );
     }

@@ -202,16 +202,23 @@ public class GameManager {
         // Teleport players to their spawns
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerData data = teamManager.getPlayerData(player);
-            if (data.getTeam() == PlayerData.Team.DEFENDERS) {
-                Location spawn = getRandomSpawnAround(flagLocation, defenderSpawnRadius);
-                player.teleport(spawn);
-            } else if (data.getTeam() == PlayerData.Team.ATTACKERS) {
-                Location spawn = getSpawnOnPerimeter(attackerSpawnCenter, attackerSpawnRadius);
-                player.teleport(spawn);
-                player.setRespawnLocation(spawn, true);
+            if (data.isReady()) {
+                if (data.getTeam() == PlayerData.Team.DEFENDERS) {
+                    Location spawn = getRandomSpawnAround(flagLocation, defenderSpawnRadius);
+                    player.teleport(spawn);
+                } else if (data.getTeam() == PlayerData.Team.ATTACKERS) {
+                    Location spawn = getSpawnOnPerimeter(attackerSpawnCenter, attackerSpawnRadius);
+                    player.teleport(spawn);
+                    player.setRespawnLocation(spawn, true);
+                }
+                // Freeze player
+                frozenPlayers.add(player.getUniqueId());
+            } else {
+                // Not ready - set to spectator and add to pending
+                player.setGameMode(GameMode.SPECTATOR);
+                pendingPlayers.add(player.getUniqueId());
+                player.sendMessage(Component.text("Game started! You are spectating until you use /team and /kit.", NamedTextColor.YELLOW));
             }
-            // Freeze player
-            frozenPlayers.add(player.getUniqueId());
         }
 
         // Set difficulty to normal for PvP
@@ -276,16 +283,18 @@ public class GameManager {
             }
         }
 
-        // Create 3x3 gold blocks on top
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                Location goldLoc = platformLoc.clone().add(dx, 1, dz);
-                goldLoc.getBlock().setType(Material.GOLD_BLOCK);
-                goldBlocks.add(goldLoc.getBlock().getLocation());
+        // Create 3x3x3 gold blocks on top
+        for (int dy = 1; dy <= 3; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    Location goldLoc = platformLoc.clone().add(dx, dy, dz);
+                    goldLoc.getBlock().setType(Material.GOLD_BLOCK);
+                    goldBlocks.add(goldLoc.getBlock().getLocation());
+                }
             }
         }
 
-        return platformLoc.add(0, 1, 0); // Center of the 3x3 gold area
+        return platformLoc.add(0, 2, 0); // Center of the 3x3x3 gold area
     }
 
     private boolean isValidSpawnBlock(Material type) {
@@ -517,7 +526,9 @@ public class GameManager {
                     for (Player player : Bukkit.getOnlinePlayers()) {
                         player.showTitle(title);
                         player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);
-                        player.setGameMode(GameMode.SURVIVAL);
+                        if (teamManager.getPlayerData(player).isReady()) {
+                            player.setGameMode(GameMode.SURVIVAL);
+                        }
                     }
 
                     // Unfreeze all players
@@ -671,6 +682,24 @@ private void respawnPlayer(Player player, PlayerData data) {
         }
     }
 
+    public boolean isObjectiveArea(Block block) {
+        if (flagLocation == null) return false;
+        
+        // The flagLocation is the center of the 3x3 stone brick platform, 1 block above.
+        // Let's get the base location (the center stone brick)
+        Location base = flagLocation.clone().subtract(0, 1, 0);
+        
+        // Platform is 5x5 stone bricks at base.getY()
+        if (block.getWorld().equals(base.getWorld()) && block.getY() == base.getBlockY()) {
+            int dx = Math.abs(block.getX() - base.getBlockX());
+            int dz = Math.abs(block.getZ() - base.getBlockZ());
+            if (dx <= 2 && dz <= 2 && block.getType() == Material.STONE_BRICKS) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void notifyGoldAttacked(Player attacker, Block block) {
         if (!goldBlocks.contains(block.getLocation())) return;
 
@@ -691,7 +720,7 @@ private void respawnPlayer(Player player, PlayerData data) {
             if (data.getTeam() == PlayerData.Team.DEFENDERS) {
                 p.showTitle(Title.title(
                         Component.text("GOAL UNDER ATTACK!", NamedTextColor.RED),
-                        Component.text(attacker.getName() + " is breaking gold!", NamedTextColor.GOLD),
+                        Component.text(attacker.getName() + " is breaking gold! (" + goldBlocks.size() + "/27)", NamedTextColor.GOLD),
                         Title.Times.times(Duration.ZERO, Duration.ofSeconds(1), Duration.ofMillis(500))
                 ));
             }
@@ -706,7 +735,7 @@ private void respawnPlayer(Player player, PlayerData data) {
 
         // Broadcast remaining count
         Component msg = Component.text("A gold block has been destroyed! ", NamedTextColor.YELLOW)
-                .append(Component.text("(" + remaining + "/9 remaining)", NamedTextColor.GOLD));
+                .append(Component.text("(" + remaining + "/27 remaining)", NamedTextColor.GOLD));
         
         for (Player p : Bukkit.getOnlinePlayers()) {
             p.sendMessage(msg);

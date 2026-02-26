@@ -82,6 +82,12 @@ public class GameListener implements Listener {
         // Disable block drops for all blocks
         event.setDropItems(false);
 
+        // Prevent breaking the objective platform
+        if (gameManager.isObjectiveArea(event.getBlock())) {
+            event.setCancelled(true);
+            return;
+        }
+
         // Prevent block breaking during countdown
         if (gameManager.isInCountdown() || gameManager.isFrozen(player)) {
             event.setCancelled(true);

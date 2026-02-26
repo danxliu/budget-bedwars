@@ -14,7 +14,10 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionType;
 
 import java.util.*;
 
@@ -47,12 +50,14 @@ public class KitManager {
         private final String customItemId;
         private final int amount;
         private final Map<Enchantment, Integer> enchantments;
+        private final String potionType;
 
-        public KitItem(Material material, String customItemId, int amount, Map<Enchantment, Integer> enchantments) {
+        public KitItem(Material material, String customItemId, int amount, Map<Enchantment, Integer> enchantments, String potionType) {
             this.material = material;
             this.customItemId = customItemId;
             this.amount = amount;
             this.enchantments = enchantments;
+            this.potionType = potionType;
         }
 
         public boolean isCustomItem() {
@@ -65,8 +70,19 @@ public class KitManager {
 
         public ItemStack toItemStack() {
             ItemStack item = new ItemStack(material, amount);
-            for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
-                item.addUnsafeEnchantment(entry.getKey(), entry.getValue());
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null) {
+                if (potionType != null && meta instanceof PotionMeta potionMeta) {
+                    NamespacedKey key = NamespacedKey.minecraft(potionType.toLowerCase());
+                    PotionType type = RegistryAccess.registryAccess().getRegistry(RegistryKey.POTION).get(key);
+                    if (type != null) {
+                        potionMeta.setBasePotionType(type);
+                    }
+                }
+                for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
+                    meta.addEnchant(entry.getKey(), entry.getValue(), true);
+                }
+                item.setItemMeta(meta);
             }
             return item;
         }
@@ -82,7 +98,7 @@ public class KitManager {
         // Check for custom_item first
         String customItemId = (String) itemMap.get("custom_item");
         if (customItemId != null) {
-            return new KitItem(null, customItemId, amount, new HashMap<>());
+            return new KitItem(null, customItemId, amount, new HashMap<>(), null);
         }
 
         // Otherwise parse as regular material
@@ -91,7 +107,8 @@ public class KitManager {
         if (material == null) return null;
 
         Map<Enchantment, Integer> enchantments = parseEnchantments(itemMap.get("enchantments"));
-        return new KitItem(material, null, amount, enchantments);
+        String potionType = (String) itemMap.get("potion");
+        return new KitItem(material, null, amount, enchantments, potionType);
     }
 
     private Map<Enchantment, Integer> parseEnchantments(Object enchObj) {
@@ -158,7 +175,7 @@ public class KitManager {
                         if (materialStr != null) {
                             Material material = Material.matchMaterial(materialStr);
                             if (material != null) {
-                                armor.put(slot, new KitItem(material, null, 1, new HashMap<>()));
+                                armor.put(slot, new KitItem(material, null, 1, new HashMap<>(), null));
                             }
                         }
                     }

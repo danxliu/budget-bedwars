@@ -31,9 +31,10 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // Only allow team changes during INIT phase (or for OPs during game)
+        // Only allow team changes during INIT phase (or for OPs during game, or for pending players)
+        boolean isPending = gameManager.isPending(player);
         boolean isOpMidGame = player.isOp() && (gameManager.isRunning() || gameManager.isInCountdown());
-        if (!gameManager.isInInitPhase() && gameManager.getState() != GameManager.GameState.IDLE && !isOpMidGame) {
+        if (!gameManager.isInInitPhase() && gameManager.getState() != GameManager.GameState.IDLE && !isOpMidGame && !isPending) {
             player.sendMessage(Component.text("You cannot change teams during the game!", NamedTextColor.RED));
             return true;
         }

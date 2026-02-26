@@ -13,15 +13,15 @@ game:
   defender_copper_rate_seconds: 2
   flag_location_max_attempts: 100
   countdown_seconds: 5
-  sky_platform_height_offset: 20
+  sky_platform_height_offset: 5
 
 kits:
   knight:
     armor:
       helmet: IRON_HELMET
-      chestplate: IRON_HELMET
-      leggings: IRON_HELMET
-      boots: IRON_HELMET
+      chestplate: IRON_CHESTPLATE
+      leggings: IRON_LEGGINGS
+      boots: IRON_BOOTS
     items:
       - material: DIAMOND_SWORD
         amount: 1
@@ -33,7 +33,7 @@ kits:
         amount: 1
       - material: BREAD
         amount: 16
-      - material: BLUE_WOOL
+      - material: WHITE_WOOL
         amount: 64
       - custom_item: compass
         amount: 1
@@ -59,7 +59,7 @@ kits:
         amount: 1
       - material: BREAD
         amount: 16
-      - material: BLUE_WOOL
+      - material: WHITE_WOOL
         amount: 64
       - custom_item: compass
         amount: 1
@@ -75,8 +75,12 @@ kits:
         amount: 1
       - material: SHIELD
         amount: 1
-      - material: DIAMOND_PICKAXE
+      - material: IRON_AXE
         amount: 1
+      - material: STONE_PICKAXE
+        amount: 1
+        echantments:
+          efficiency: 2
       - material: SHEARS
         amount: 1
       - material: STONE_BRICKS
@@ -85,11 +89,11 @@ kits:
         amount: 1
       - material: BREAD
         amount: 16
-      - material: BLUE_WOOL
+      - material: WHITE_WOOL
         amount: 64
       - custom_item: compass
         amount: 1
-  newgen:
+  spear_mace:
     armor:
       helmet: IRON_HELMET
       chestplate: IRON_CHESTPLATE
@@ -98,18 +102,51 @@ kits:
     items:
       - material: STONE_SWORD
         amount: 1
+      - material: STONE_AXE
+        amount: 1
       - material: SHIELD
         amount: 1
       - material: WOODEN_PICKAXE
         amount: 1
       - material: MACE
+        enchantments:
+          wind_burst: 1
         amount: 1
       - material: DIAMOND_SPEAR
         amount: 1
       - material: BREAD
         amount: 16
-      - material: BLUE_WOOL
+      - material: WHITE_WOOL
         amount: 64
+      - custom_item: compass
+        amount: 1
+  mage:
+    armor:
+      helmet: IRON_HELMET
+      chestplate: IRON_CHESTPLATE
+      leggings: IRON_LEGGINGS
+      boots: IRON_BOOTS
+    items:
+      - material: STONE_SWORD
+        amount: 1
+      - material: STONE_AXE
+        amount: 1
+      - material: SHIELD
+        amount: 1
+      - material: WOODEN_PICKAXE
+        amount: 1
+      - material: BREAD
+        amount: 16
+      - material: WHITE_WOOL
+        amount: 64
+      - custom_item: compass
+        amount: 1
+      - material: SPLASH_POTION
+        amount: 3
+        potion: strong_strength
+      - material: SPLASH_POTION
+        amount: 3
+        potion: harming
       - custom_item: compass
         amount: 1
 
@@ -153,6 +190,10 @@ shop:
         input_amount: 16
         output_item: ENDER_PEARL
         output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 4
+        output_item: COBWEB
+        output_amount: 16
   defenders:
     title: "Defender Shop"
     trades:
@@ -192,3 +233,7 @@ shop:
         input_amount: 16
         output_item: ENDER_PEARL
         output_amount: 1
+      - input_item: COPPER_INGOT
+        input_amount: 4
+        output_item: COBWEB
+        output_amount: 16
