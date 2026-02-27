@@ -6,12 +6,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockDamageEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.block.*;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+
+import java.util.Iterator;
 
 public class GameListener implements Listener {
     private final GameManager gameManager;
@@ -105,6 +107,68 @@ public class GameListener implements Listener {
                     event.setCancelled(true);
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void onEntityExplode(EntityExplodeEvent event) {
+        event.blockList().removeIf(block -> 
+            gameManager.getGoldBlocks().contains(block.getLocation()) || 
+            gameManager.isObjectiveArea(block)
+        );
+    }
+
+    @EventHandler
+    public void onBlockExplode(BlockExplodeEvent event) {
+        event.blockList().removeIf(block -> 
+            gameManager.getGoldBlocks().contains(block.getLocation()) || 
+            gameManager.isObjectiveArea(block)
+        );
+    }
+
+    @EventHandler
+    public void onBlockBurn(BlockBurnEvent event) {
+        if (gameManager.getGoldBlocks().contains(event.getBlock().getLocation()) || 
+            gameManager.isObjectiveArea(event.getBlock())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onEntityChangeBlock(EntityChangeBlockEvent event) {
+        if (gameManager.getGoldBlocks().contains(event.getBlock().getLocation()) || 
+            gameManager.isObjectiveArea(event.getBlock())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPistonExtend(BlockPistonExtendEvent event) {
+        for (Block block : event.getBlocks()) {
+            if (gameManager.getGoldBlocks().contains(block.getLocation()) || 
+                gameManager.isObjectiveArea(block)) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPistonRetract(BlockPistonRetractEvent event) {
+        for (Block block : event.getBlocks()) {
+            if (gameManager.getGoldBlocks().contains(block.getLocation()) || 
+                gameManager.isObjectiveArea(block)) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    @EventHandler
+    public void onBlockFromTo(BlockFromToEvent event) {
+        if (gameManager.isObjectiveArea(event.getToBlock()) || 
+            (gameManager.getGoldBlocks().contains(event.getToBlock().getLocation()))) {
+            event.setCancelled(true);
         }
     }
 

@@ -685,9 +685,9 @@ private void respawnPlayer(Player player, PlayerData data) {
     public boolean isObjectiveArea(Block block) {
         if (flagLocation == null) return false;
         
-        // The flagLocation is the center of the 3x3 stone brick platform, 1 block above.
+        // The flagLocation is the center of the 3x3x3 gold area, which is 2 blocks above the platform.
         // Let's get the base location (the center stone brick)
-        Location base = flagLocation.clone().subtract(0, 1, 0);
+        Location base = flagLocation.clone().subtract(0, 2, 0);
         
         // Platform is 5x5 stone bricks at base.getY()
         if (block.getWorld().equals(base.getWorld()) && block.getY() == base.getBlockY()) {
